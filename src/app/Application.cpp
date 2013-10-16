@@ -85,8 +85,9 @@ void SDLApplication::createWindow(const char* windowCaption, size_t width, size_
 
 	LOG(INFO) << "Using GLEW " << glewGetString(GLEW_VERSION);
 
-	/* GL_EXT_direct_state_access detection broken in glew
-	if (!GLEW_EXT_direct_state_access)
+	// GL_EXT_direct_state_access detection broken in glew on my amd radeon 6630m
+	// TODO: check if desired functions are not null manually
+	/*if (!GLEW_EXT_direct_state_access)
 		throw Exception("Missing EXT_direct_state_access extension!");*/
 }
 

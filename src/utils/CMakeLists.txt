@@ -4,15 +4,13 @@
 
 set(SM_UTILS_HEADERS 
 	Exception.h
-	File.h
 	Logging.h
-	Variant.h
 	ArrayRef.h
+	Helpers.h
 )
 
 set(SM_UTILS_SOURCES
 	Exception.cpp
-	File.cpp
 	Logging.cpp
 )
 
