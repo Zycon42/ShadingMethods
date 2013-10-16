@@ -15,6 +15,9 @@
 
 class Node;
 
+/**
+ * Scene contains nodes which are renderable objects.
+ */
 class Scene
 {
 public:
@@ -25,10 +28,14 @@ public:
 		return m_renderer;
 	}
 
+	/// Change renderer which scene is bound to.
 	void changeRenderer(gl::Renderer* renderer);
 
+	/// Add node to scene.
 	void addNode(std::unique_ptr<Node> node);
+	/// Remove node from scene.
 	void removeNode(size_t index);
+	/// Extracts node from scene i.e. node is moved out.
 	std::unique_ptr<Node> extractNode(size_t index);
 
 	void nodeGeometryChanged(Node* node);

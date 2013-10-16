@@ -22,18 +22,19 @@ std::shared_ptr<gl::ShaderProgram> ShaderManager::getGlslProgram(const std::stri
 	// shader program not yet loaded
 	try {
 		m_programs[name] = loadProgram(name);
-		return m_programs[name];
 	} catch (ShaderException& e) {
 		LOG(ERROR) << "Unable to load program: " << e.what();
+		return nullptr;
 	}
-
-	return nullptr;
+	LOG(INFO) << "Successfully loaded program [" << name << "]";
+	return m_programs[name];
 }
 
 std::shared_ptr<gl::ShaderProgram> ShaderManager::loadProgram(const std::string& name) {
 	std::vector<std::shared_ptr<gl::Shader>> shaders;
 	static gl::Shader::Type types[] = { 
-		gl::Shader::Type::Vertex, gl::Shader::Type::Fragment, gl::Shader::Type::Geometry
+		gl::Shader::Type::Vertex, gl::Shader::Type::Fragment, gl::Shader::Type::Geometry,
+		gl::Shader::Type::TessControl, gl::Shader::Type::TessEvaluation
 	};
 
 	for (int i = 0; i < (sizeof(types) / sizeof(*types)); ++i) {
@@ -52,7 +53,8 @@ std::shared_ptr<gl::ShaderProgram> ShaderManager::loadProgram(const std::string&
 std::string ShaderManager::shaderTypeFileSuffix(gl::Shader::Type type) {
 	static std::map<gl::Shader::Type, std::string> typeSuffixes = create_map<gl::Shader::Type, std::string>
 		(gl::Shader::Type::Vertex, "vert")(gl::Shader::Type::Fragment, "frag")
-		(gl::Shader::Type::Geometry, "geom");
+		(gl::Shader::Type::Geometry, "geom")(gl::Shader::Type::TessControl, "tesc")
+		(gl::Shader::Type::TessEvaluation, "tese");
 
 	return typeSuffixes[type];
 }
