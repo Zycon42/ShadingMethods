@@ -9,8 +9,7 @@
 #define APPLICATION_H
 
 #include "Exception.h"
-
-#include <SDL.h>
+#include "KeyboardHandler.h"
 
 #include <cstdint>
 #include <memory>
@@ -77,6 +76,9 @@ private:
 	/// Handles mouse movement.
 	void handleMouseMove(int xrel, int yrel);
 
+	/// Handles key presses
+	void handleKeyboard();
+
 	SDL_Window* window;
 	SDL_GLContext context;
 
@@ -90,6 +92,8 @@ private:
 	std::unique_ptr<gl::Renderer> renderer;
 	std::unique_ptr<Scene> scene;
 	std::unique_ptr<FpsCamera> camera;
+
+	KeyboardHandler keyboardHandler;
 };
 
 /**

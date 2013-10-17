@@ -11,7 +11,7 @@
 #include <glm/gtx/transform.hpp>
 
 FpsCamera::FpsCamera(gl::Renderer* renderer) 
-	: Camera(renderer), m_direction(1.0f, 0.0f, 0.0f), m_up(0.0f, 0.0f, 1.0f), m_speed(3.0f)
+	: Camera(renderer), m_direction(1.0f, 0.0f, 0.0f), m_up(0.0f, 0.0f, 1.0f), m_speed(0.5f)
 { }
 
 void FpsCamera::update() {
@@ -35,15 +35,16 @@ void FpsCamera::goRight(float fps) {
 	m_position -= glm::cross(m_up, m_direction) * m_speed / fps;
 }
 
-void FpsCamera::yaw(float value, float fps) {
-	m_direction = glm::mat3(glm::rotate(value / fps, m_up)) * m_direction;
+void FpsCamera::yaw(float value) {
+	// remove minus sign before value to invert yaw
+	m_direction = glm::mat3(glm::rotate(-value, m_up)) * m_direction;
 }
 
-void FpsCamera::roll(float value, float fps) {
-	m_up = glm::mat3(glm::rotate(value / fps, m_direction)) * m_up;
+void FpsCamera::roll(float value) {
+	m_up = glm::mat3(glm::rotate(value, m_direction)) * m_up;
 }
 
-void FpsCamera::pitch(float value, float fps) {
-	m_direction = glm::mat3(glm::rotate(value / fps, glm::cross(m_up, m_direction))) * m_direction;
-	m_up = glm::mat3(glm::rotate(value / fps, glm::cross(m_up, m_direction))) * m_up;
+void FpsCamera::pitch(float value) {
+	m_direction = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_direction;
+	m_up = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_up;
 }

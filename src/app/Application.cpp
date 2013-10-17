@@ -23,7 +23,7 @@
 const char* SDLApplication::DEFAULT_WND_TITLE = "Test app";
 
 SDLApplication::SDLApplication(int argc, char** argv) 
-	: window(nullptr), context(nullptr), done(false), fps(0.0), windowTitle(DEFAULT_WND_TITLE),
+	: window(nullptr), context(nullptr), done(false), fps(60.0), windowTitle(DEFAULT_WND_TITLE),
 	  renderer(new gl::Renderer())
 {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
@@ -115,7 +115,7 @@ void SDLApplication::init() {
 	scene->addNode(std::unique_ptr<Node>(new Node(mesh, material)));
 
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
-	camera->setProjectionMatrix(glm::perspective(90.0f, (float)width / height, 1.0f, 100.0f));
+	camera->setProjectionMatrix(glm::perspective(90.0f, (float)width / height, 0.001f, 10.0f));
 	camera->setPosition(-1.0f, 0.0f, 0.5f);
 
 	renderer->setCamera(camera.get());
@@ -125,6 +125,8 @@ void SDLApplication::update() {
 	std::ostringstream ss;
 	ss << windowTitle << " - " << fps;
 	SDL_SetWindowTitle(window, ss.str().c_str());
+
+	handleKeyboard();
 
 	camera->update();
 }
@@ -145,28 +147,9 @@ void SDLApplication::processEvents() {
 			done = true; 
 			break;
 
-		case SDL_KEYDOWN: 
-			switch(event.key.keysym.sym)  
-			{  
-			case SDLK_ESCAPE: {
-				SDL_Event quitEvent = { SDL_QUIT };
-				SDL_PushEvent(&quitEvent);
-				break;
-			}
-			case SDLK_w:
-				camera->goForward(fps);
-				break;
-			case SDLK_s:
-				camera->goBackward(fps);
-				break;
-			case SDLK_a:
-				camera->goLeft(fps);
-				break;
-			case SDLK_d:
-				camera->goRight(fps);
-				break;
-			}
-
+		case SDL_KEYUP:
+		case SDL_KEYDOWN:
+			keyboardHandler.handleEvent(event.key);
 			break;
 
 		case SDL_MOUSEMOTION:
@@ -176,12 +159,29 @@ void SDLApplication::processEvents() {
 	}
 }
 
-void SDLApplication::handleMouseMove(int xrel, int yrel) {
-	int winWidth, winHeight;
-	SDL_GetWindowSize(window, &winWidth, &winHeight);
+void SDLApplication::handleKeyboard() {
+	if (keyboardHandler.isPressed(SDLK_ESCAPE)) {
+		SDL_Event quitEvent = { SDL_QUIT };
+		SDL_PushEvent(&quitEvent);
+		return;
+	}
 
-	camera->yaw(static_cast<float>(xrel) / winWidth, fps);
-	camera->pitch(static_cast<float>(yrel) / winHeight, fps);
+	if (keyboardHandler.isPressed(SDLK_w))
+		camera->goForward(fps);
+	if (keyboardHandler.isPressed(SDLK_s))
+		camera->goBackward(fps);
+	if (keyboardHandler.isPressed(SDLK_a))
+		camera->goLeft(fps);
+	if (keyboardHandler.isPressed(SDLK_d))
+		camera->goRight(fps);
+}
+
+void SDLApplication::handleMouseMove(int xrel, int yrel) {
+	/*int winWidth, winHeight;
+	SDL_GetWindowSize(window, &winWidth, &winHeight);*/
+
+	camera->yaw(static_cast<float>(xrel));
+	camera->pitch(static_cast<float>(yrel));
 }
 
 void SDLApplication::calculateFps(float& fps, double& prevTime, uint64_t& frameCount) {

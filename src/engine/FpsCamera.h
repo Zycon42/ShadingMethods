@@ -24,9 +24,9 @@ public:
 	void goLeft(float fps);
 	void goRight(float fps);
 
-	void yaw(float value, float fps);
-	void pitch(float value, float fps);
-	void roll(float value, float fps);
+	void yaw(float value);
+	void pitch(float value);
+	void roll(float value);
 
 	float speed() const {
 		return m_speed;
