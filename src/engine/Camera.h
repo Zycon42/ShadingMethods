@@ -24,6 +24,9 @@ public:
 	 */
 	explicit Camera(gl::Renderer* renderer);
 
+	/// Updates camera
+	virtual void update();
+
 	/// Get OpenGL uniform buffer where camera stores matrices
 	gl::IndexedBuffer* uniformBuffer() {
 		return m_buffer->internalBuffer();
@@ -38,10 +41,10 @@ public:
 	const glm::mat4& projectionMatrix() const {
 		return m_buffer->data().projection;
 	}
-protected:
+
 	void setProjectionMatrix(const glm::mat4& m);
 	void setViewMatrix(const glm::mat4& m);
-
+protected:
 	void flushChanges();
 private:
 	struct BufferData

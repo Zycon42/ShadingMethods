@@ -21,6 +21,7 @@ namespace gl {
 }
 
 class Scene;
+class FpsCamera;
 
 /**
  * Class representing SDL gui application.
@@ -68,16 +69,19 @@ private:
 	 * @retval prevTime time from previous call ... sets to current time at the function end.
 	 * @retval frameCount value gets incremented on each call.
 	 */
-	void calculateFps(double& fps, double& prevTime, uint64_t& frameCount);
+	void calculateFps(float& fps, double& prevTime, uint64_t& frameCount);
 
 	/// Gets unique time in seconds. time 0 depends on platform i.e. on unix it will be 1.1.1970 00:00
 	static double getTime();
+
+	/// Handles mouse movement.
+	void handleMouseMove(int xrel, int yrel);
 
 	SDL_Window* window;
 	SDL_GLContext context;
 
 	bool done;
-	double fps;
+	float fps;
 
 	const char* windowTitle;
 	size_t width;
@@ -85,6 +89,7 @@ private:
 
 	std::unique_ptr<gl::Renderer> renderer;
 	std::unique_ptr<Scene> scene;
+	std::unique_ptr<FpsCamera> camera;
 };
 
 /**

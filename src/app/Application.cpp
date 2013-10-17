@@ -13,8 +13,10 @@
 #include "Scene.h"
 #include "Node.h"
 #include "ShaderManager.h"
+#include "FpsCamera.h"
 
 #include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <sstream>
 
@@ -89,6 +91,9 @@ void SDLApplication::createWindow(const char* windowCaption, size_t width, size_
 	// TODO: check if desired functions are not null manually
 	/*if (!GLEW_EXT_direct_state_access)
 		throw Exception("Missing EXT_direct_state_access extension!");*/
+
+	if (SDL_SetRelativeMouseMode(SDL_TRUE) == -1)
+		throw SDLException("SDL_SetRelativeMouseMode failed");
 }
 
 void SDLApplication::init() {
@@ -108,12 +113,20 @@ void SDLApplication::init() {
 		sizeof(vertices) / sizeof(*vertices), ArrayRef<VertexElement>(layout, sizeof(layout) / sizeof(*layout)));
 
 	scene->addNode(std::unique_ptr<Node>(new Node(mesh, material)));
+
+	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
+	camera->setProjectionMatrix(glm::perspective(90.0f, (float)width / height, 1.0f, 100.0f));
+	camera->setPosition(-1.0f, 0.0f, 0.5f);
+
+	renderer->setCamera(camera.get());
 }
 
 void SDLApplication::update() {
 	std::ostringstream ss;
 	ss << windowTitle << " - " << fps;
 	SDL_SetWindowTitle(window, ss.str().c_str());
+
+	camera->update();
 }
 
 void SDLApplication::draw() {
@@ -130,28 +143,54 @@ void SDLApplication::processEvents() {
 		{  
 		case SDL_QUIT:
 			done = true; 
-			break;  
+			break;
+
 		case SDL_KEYDOWN: 
 			switch(event.key.keysym.sym)  
 			{  
-			case SDLK_ESCAPE:
+			case SDLK_ESCAPE: {
 				SDL_Event quitEvent = { SDL_QUIT };
 				SDL_PushEvent(&quitEvent);
-				break;                             
+				break;
+			}
+			case SDLK_w:
+				camera->goForward(fps);
+				break;
+			case SDLK_s:
+				camera->goBackward(fps);
+				break;
+			case SDLK_a:
+				camera->goLeft(fps);
+				break;
+			case SDLK_d:
+				camera->goRight(fps);
+				break;
 			}
 
+			break;
+
+		case SDL_MOUSEMOTION:
+			handleMouseMove(event.motion.xrel, event.motion.yrel);
 			break;
 		}  
 	}
 }
 
-void SDLApplication::calculateFps(double& fps, double& prevTime, uint64_t& frameCount) {
+void SDLApplication::handleMouseMove(int xrel, int yrel) {
+	int winWidth, winHeight;
+	SDL_GetWindowSize(window, &winWidth, &winHeight);
+
+	camera->yaw(static_cast<float>(xrel) / winWidth, fps);
+	camera->pitch(static_cast<float>(yrel) / winHeight, fps);
+}
+
+void SDLApplication::calculateFps(float& fps, double& prevTime, uint64_t& frameCount) {
 	frameCount++;
 
 	double currentTime = getTime();
 	double timeInterval = currentTime - prevTime;
 	if (timeInterval > 1.0) {
-		fps = frameCount / timeInterval;
+		fps = static_cast<float>(frameCount / timeInterval);
 		prevTime = currentTime;
 		frameCount = 0;
 	}

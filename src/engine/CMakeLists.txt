@@ -23,6 +23,7 @@ set(SM_ENGINE_HEADERS
 	Node.h
 	Scene.h
 	Camera.h
+	FpsCamera.h
 	RenderBatch.h
 	UniformBuffer.h
 	ShaderManager.h
@@ -36,6 +37,7 @@ set(SM_ENGINE_SOURCES
 	Node.cpp
 	Scene.cpp
 	Camera.cpp
+	FpsCamera.cpp
 	RenderBatch.cpp
 	ShaderManager.cpp
 )
