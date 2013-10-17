@@ -14,6 +14,7 @@ endif()
 
 set(SM_APPLICATION_HEADERS
 	Application.h
+	KeyboardHandler.h
 )
 
 set(SM_APPLICATION_SOURCES

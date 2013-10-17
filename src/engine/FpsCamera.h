@@ -28,11 +28,11 @@ public:
 	void pitch(float value);
 	void roll(float value);
 
-	float speed() const {
+	float movementSpeed() const {
 		return m_speed;
 	}
 
-	void setSpeed(float value) {
+	void setMovementSpeed(float value) {
 		m_speed = value;
 	}
 

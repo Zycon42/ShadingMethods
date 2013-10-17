@@ -11,7 +11,7 @@
 #include <glm/gtx/transform.hpp>
 
 FpsCamera::FpsCamera(gl::Renderer* renderer) 
-	: Camera(renderer), m_direction(1.0f, 0.0f, 0.0f), m_up(0.0f, 0.0f, 1.0f), m_speed(0.5f)
+	: Camera(renderer), m_direction(1.0f, 0.0f, 0.0f), m_up(0.0f, 0.0f, 1.0f), m_speed(1.0f)
 { }
 
 void FpsCamera::update() {
@@ -46,5 +46,5 @@ void FpsCamera::roll(float value) {
 
 void FpsCamera::pitch(float value) {
 	m_direction = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_direction;
-	m_up = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_up;
+	//m_up = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_up;
 }

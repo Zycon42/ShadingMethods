@@ -23,7 +23,7 @@ public:
 		m_keyStates[event.keysym.sym] = event.state == SDL_PRESSED ? true : false;
 	}
 
-	bool isPressed(SDL_Keycode code){
+	bool isPressed(SDL_Keycode code) {
 		return m_keyStates[code] == true;
 	}
 
