@@ -15,6 +15,7 @@ endif()
 set(SM_APPLICATION_HEADERS
 	Application.h
 	KeyboardHandler.h
+	Cube.h
 )
 
 set(SM_APPLICATION_SOURCES

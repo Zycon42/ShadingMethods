@@ -21,6 +21,7 @@ namespace gl {
 
 class Scene;
 class FpsCamera;
+class Light;
 
 /**
  * Class representing SDL gui application.
@@ -79,6 +80,8 @@ private:
 	/// Handles key presses
 	void handleKeyboard();
 
+	void grabMouse(bool flag);
+
 	SDL_Window* window;
 	SDL_GLContext context;
 
@@ -89,9 +92,12 @@ private:
 	size_t width;
 	size_t height;
 
+	bool mouseGrabbed;
+
 	std::unique_ptr<gl::Renderer> renderer;
 	std::unique_ptr<Scene> scene;
 	std::unique_ptr<FpsCamera> camera;
+	std::unique_ptr<Light> light;
 
 	KeyboardHandler keyboardHandler;
 };

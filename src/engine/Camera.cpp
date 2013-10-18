@@ -28,7 +28,7 @@ void Camera::setViewMatrix(const glm::mat4& m) {
 }
 
 void Camera::flushChanges() {
-	m_buffer->flushAllData();
+	m_buffer->flushData();
 }
 
 void Camera::computeDerivedData() {

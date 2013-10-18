@@ -8,12 +8,16 @@
 #include "Application.h"
 
 #include "Logging.h"
+#include "Helpers.h"
 #include "Common.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "Node.h"
 #include "ShaderManager.h"
 #include "FpsCamera.h"
+#include "Light.h"
+
+#include "Cube.h"
 
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -92,8 +96,7 @@ void SDLApplication::createWindow(const char* windowCaption, size_t width, size_
 	/*if (!GLEW_EXT_direct_state_access)
 		throw Exception("Missing EXT_direct_state_access extension!");*/
 
-	if (SDL_SetRelativeMouseMode(SDL_TRUE) == -1)
-		throw SDLException("SDL_SetRelativeMouseMode failed");
+	grabMouse(true);
 }
 
 void SDLApplication::init() {
@@ -101,25 +104,46 @@ void SDLApplication::init() {
 
 	scene = std::unique_ptr<Scene>(new Scene(renderer.get()));
 
-	auto material = std::make_shared<SimpleMaterial>();
+	auto material = std::make_shared<PhongMaterial>(renderer.get());
 	ShaderManager shaderManager;
-	material->setShader(shaderManager.getGlslProgram("simple"));
+	material->setShader(shaderManager.getGlslProgram("phong"));
+
+	PhongMaterialData materialData = { glm::vec4(0.0f, 0.1f, 0.0f, 1.0f), 
+		glm::vec4(0.8f, 0.3f, 0.1f, 1.0f), glm::vec4(0.3f, 0.3f, 0.3f, 1.0f), 5.0f };
+
+	material->properties()->setData(materialData);
+	material->properties()->flushData();
 
 	auto mesh = std::make_shared<Mesh>();
 	mesh->setPrimitiveType(PrimitiveType::TriangleList);
-	static glm::vec2 vertices[] = { glm::vec2(-0.5, -0.5), glm::vec2(0, 0.5), glm::vec2(0.5, -0.5) };
-	static VertexElement layout[] = { VertexElement(2, VertexElementType::Float) };
-	mesh->loadVertices(ArrayRef<char>(reinterpret_cast<char*>(vertices), sizeof(vertices)), 
-		sizeof(vertices) / sizeof(*vertices), ArrayRef<VertexElement>(layout, sizeof(layout) / sizeof(*layout)));
+	
+	std::vector<char> vertices(reinterpret_cast<const char*>(cubeVertices), 
+		reinterpret_cast<const char*>(cubeVertices) + sizeof(cubeVertices));
+	std::vector<VertexElement> layout = create_vector<VertexElement>
+		(VertexElement(3, VertexElementType::Float))(VertexElement(3, VertexElementType::Float));
+	mesh->loadVertices(vertices, cubeVerticesCount, layout);
+
+	std::vector<uint32_t> indices(reinterpret_cast<const unsigned*>(cubeIndices), 
+		reinterpret_cast<const unsigned*>(cubeIndices) + cubeIndicesCount);
+	mesh->loadIndices(indices);
 
 	scene->addNode(std::unique_ptr<Node>(new Node(mesh, material)));
 
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
-	camera->setProjectionMatrix(glm::perspective(90.0f, (float)width / height, 0.001f, 10.0f));
-	camera->setPosition(-1.0f, 0.0f, 0.5f);
-	camera->setMovementSpeed(0.5f);
+	camera->setProjectionMatrix(glm::perspective(90.0f, (float)width / height, 0.01f, 1000.0f));
+	camera->setPosition(-3.0f, 0.0f, 0.5f);
+	camera->setMovementSpeed(2.0f);
 
 	renderer->setCamera(camera.get());
+
+	light = std::unique_ptr<Light>(new Light(renderer.get()));
+	light->setPosition(glm::vec4(-1.0f, 0.0f, 5.0f, 1.0f));
+	light->setAmbient(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	light->setDiffuse(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	light->setSpecular(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	light->flushChanges();
+
+	renderer->setLight(light.get());
 }
 
 void SDLApplication::update() {
@@ -167,6 +191,10 @@ void SDLApplication::handleKeyboard() {
 		return;
 	}
 
+	if (keyboardHandler.isPressed(SDLK_LALT)) {
+		grabMouse(!mouseGrabbed);
+	}
+
 	if (keyboardHandler.isPressed(SDLK_w))
 		camera->goForward(fps);
 	if (keyboardHandler.isPressed(SDLK_s))
@@ -183,6 +211,15 @@ void SDLApplication::handleMouseMove(int xrel, int yrel) {
 
 	camera->yaw(static_cast<float>(xrel));
 	camera->pitch(static_cast<float>(yrel));
+}
+
+void SDLApplication::grabMouse(bool flag) {
+	if (SDL_SetRelativeMouseMode(flag ? SDL_TRUE : SDL_FALSE) == -1) {
+		LOG(ERROR) << "SDL_SetRelativeMouseMode failed: " << SDL_GetError();
+		mouseGrabbed = false;
+		return;
+	}
+	mouseGrabbed = flag;
 }
 
 void SDLApplication::calculateFps(float& fps, double& prevTime, uint64_t& frameCount) {

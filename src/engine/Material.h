@@ -81,4 +81,20 @@ private:
 	std::unique_ptr<UniformBuffer<T>> m_buffer;
 };
 
+struct PhongMaterialData
+{
+	glm::vec4 ambient;
+	glm::vec4 diffuse;
+	glm::vec4 specular;
+	float shininess;
+};
+
+class PhongMaterial : public MaterialBase<PhongMaterialData>
+{
+public:
+	typedef MaterialBase<PhongMaterialData> base_type;
+
+	explicit PhongMaterial(gl::Renderer* renderer) : base_type(renderer) { }
+};
+
 #endif // !MATERIAL_H

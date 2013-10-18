@@ -8,6 +8,9 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#include <map>
+#include <vector>
+
 /**
  * Utility class that allows std::map initialization.
  * Required because !!!!STUPID!!!! MSVC11 doesn't support initializer lists

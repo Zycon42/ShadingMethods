@@ -9,6 +9,7 @@
 
 #include "Camera.h"
 #include "Node.h"
+#include "Light.h"
 #include "Logging.h"
 
 #include <GL/glew.h>
@@ -26,6 +27,8 @@ void Renderer::setViewport(const Viewport& viewport) {
 	glViewport(static_cast<int>(viewport.x), static_cast<int>(viewport.y), 
 		static_cast<size_t>(viewport.width), static_cast<size_t>(viewport.height));
 	glDepthRange(viewport.znear, viewport.zfar);
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Renderer::drawFrame() {
@@ -39,6 +42,10 @@ void Renderer::drawFrame() {
 
 void Renderer::setCamera(Camera* camera) {
 	camera->uniformBuffer()->bind(CAMERA_BINDING_POINT, GL_UNIFORM_BUFFER);
+}
+
+void Renderer::setLight(Light* light) {
+	light->uniformBuffer()->bind(LIGHT_BINDING_POINT,  GL_UNIFORM_BUFFER);
 }
 
 void Renderer::registerSceneNode(Node* node) {

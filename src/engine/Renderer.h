@@ -18,6 +18,7 @@
 class Camera;
 class IMaterial;
 class Node;
+class Light;
 
 namespace gl {
 
@@ -46,12 +47,16 @@ public:
 	/// Sets camera which will be used.
 	void setCamera(Camera* camera);
 
+	/// Sets light which will be used.
+	void setLight(Light* light);
+
 	/// Draw single frame, drawing all registered nodes
 	void drawFrame();
 private:
 	static const int CAMERA_BINDING_POINT = 0;
 	static const int NODE_BINDING_POINT = 1;
 	static const int MATERIAL_BINDING_POINT = 2;
+	static const int LIGHT_BINDING_POINT = 3;
 
 	struct State
 	{

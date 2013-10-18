@@ -35,8 +35,8 @@ enum class PrimitiveType { Points, LineList, LineStrip, TriangleList,
 	TriangleStrip
 };
 
-enum class VertexElementType { Byte, UnsignedByte, Short, UnsignedShort,
-	Int, UsignedInt, Float, Double
+enum class VertexElementType { Byte = 0, UnsignedByte = 1, Short = 2, UnsignedShort = 3,
+	Int = 4, UsignedInt = 5, Float = 6, Double = 7
 };
 
 struct VertexElement

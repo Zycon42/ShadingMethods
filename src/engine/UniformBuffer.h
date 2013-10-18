@@ -65,7 +65,7 @@ public:
 	}
 
 	/// Flushes all data in memory to UBO.
-	void flushAllData() {
+	void flushData() {
 		if (m_dataChanged) {
 			m_buffer.updateData(0, sizeof(T), reinterpret_cast<const void*>(&m_data));
 			m_dataChanged = false;
@@ -84,6 +84,12 @@ public:
 	/// In memory data.
 	const T& data() const {
 		return m_data;
+	}
+
+	// Sets data. Call flushData to write it to UBO.
+	void setData(const T& data) {
+		m_data = data;
+		m_dataChanged = true;
 	}
 
 	/// Call this if you modified in memory data and you want to update it via flushAllData.

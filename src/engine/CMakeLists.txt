@@ -27,6 +27,7 @@ set(SM_ENGINE_HEADERS
 	RenderBatch.h
 	UniformBuffer.h
 	ShaderManager.h
+	Light.h
 )
 
 set(SM_ENGINE_SOURCES
@@ -40,6 +41,7 @@ set(SM_ENGINE_SOURCES
 	FpsCamera.cpp
 	RenderBatch.cpp
 	ShaderManager.cpp
+	Light.cpp
 )
 
 add_library(engine ${SM_ENGINE_SOURCES} ${SM_ENGINE_HEADERS})
