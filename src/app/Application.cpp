@@ -203,12 +203,15 @@ void SDLApplication::handleKeyboard() {
 		camera->goLeft(fps);
 	if (keyboardHandler.isPressed(SDLK_d))
 		camera->goRight(fps);
+
+	static const float rollSpeed = 45.0f;
+	if (keyboardHandler.isPressed(SDLK_q))
+		camera->roll(rollSpeed / fps);
+	if (keyboardHandler.isPressed(SDLK_e))
+		camera->roll(-rollSpeed / fps);
 }
 
 void SDLApplication::handleMouseMove(int xrel, int yrel) {
-	/*int winWidth, winHeight;
-	SDL_GetWindowSize(window, &winWidth, &winHeight);*/
-
 	camera->yaw(static_cast<float>(xrel));
 	camera->pitch(static_cast<float>(yrel));
 }

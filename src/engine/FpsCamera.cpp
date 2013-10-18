@@ -45,6 +45,7 @@ void FpsCamera::roll(float value) {
 }
 
 void FpsCamera::pitch(float value) {
-	m_direction = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_direction;
-	//m_up = glm::mat3(glm::rotate(value, glm::cross(m_up, m_direction))) * m_up;
+	glm::vec3 right = glm::cross(m_up, m_direction);
+	m_direction = glm::mat3(glm::rotate(value, right)) * m_direction;
+	m_up = glm::mat3(glm::rotate(value, right)) * m_up;
 }
