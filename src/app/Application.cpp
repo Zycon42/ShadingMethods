@@ -261,25 +261,13 @@ void SDLApplication::calculateFps(float& fps, double& prevTime, uint64_t& frameC
 }
 
 double SDLApplication::getTime() {
-#ifdef _WIN32
-	// windows version
-	static LARGE_INTEGER freq;
+	static uint64_t freq;
 	static bool first = true;
 	if (first) {
 		first = false;
-		if (!QueryPerformanceFrequency(&freq))
-			throw Win32Exception("QueryPerformanceFrequency failed!");
+		freq = SDL_GetPerformanceFrequency();
 	}
 
-	LARGE_INTEGER val;
-	QueryPerformanceCounter(&val);
-	return static_cast<double>(val.QuadPart) / static_cast<double>(freq.QuadPart);
-#else
-	// posix version
-	struct timeval tv;
-	if (gettimeofday(&tv, NULL) == -1)
-		throw SystemException("gettimeofday failed!");
-
-	return static_cast<double>(tv.tv_sec) + static_cast<double>(tv.tv_usec) / 1000000.0;
-#endif // _WIN32
+	uint64_t counter = SDL_GetPerformanceCounter();
+	return static_cast<double>(counter) / static_cast<double>(freq);
 }
