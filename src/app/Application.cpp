@@ -21,6 +21,7 @@
 
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/swizzle.hpp>
 
 #include <sstream>
 
@@ -100,13 +101,13 @@ void SDLApplication::createWindow(const char* windowCaption, size_t width, size_
 }
 
 void SDLApplication::init() {
+	renderer->initialize();
 	renderer->setViewport(Viewport(static_cast<float>(width), static_cast<float>(height)));
 
 	scene = std::unique_ptr<Scene>(new Scene(renderer.get()));
 
 	auto material = std::make_shared<PhongMaterial>(renderer.get());
-	ShaderManager shaderManager;
-	material->setShader(shaderManager.getGlslProgram("phong"));
+	material->setShader(renderer->shaderManager()->getGlslProgram("shadowedphong"));
 
 	PhongMaterialData materialData = { glm::vec4(0.0f, 0.1f, 0.0f, 1.0f), 
 		glm::vec4(0.8f, 0.3f, 0.1f, 1.0f), glm::vec4(0.3f, 0.3f, 0.3f, 1.0f), 5.0f };
@@ -129,6 +130,19 @@ void SDLApplication::init() {
 
 	scene->addNode(std::unique_ptr<Node>(new Node(mesh, material)));
 
+	auto floorMesh = std::make_shared<Mesh>();
+	floorMesh->setPrimitiveType(PrimitiveType::TriangleStrip);
+
+	std::vector<glm::vec3> floorVertices = create_vector<glm::vec3>
+		(glm::vec3(-4.0f, -4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
+		(glm::vec3(4.0f, -4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
+		(glm::vec3(-4.0f, 4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
+		(glm::vec3(4.0f, 4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f));
+	floorMesh->loadVertices(ArrayRef<char>(reinterpret_cast<char*>(floorVertices.data()), floorVertices.size() * sizeof(glm::vec3))
+		, floorVertices.size() / 2, ArrayRef<VertexElement>(layout));
+
+	scene->addNode(std::unique_ptr<Node>(new Node(floorMesh, material)));
+
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
 	camera->setProjectionMatrix(glm::perspective(60.0f, (float)width / height, 0.01f, 100.0f));
 	camera->setPosition(-3.0f, 0.0f, 0.5f);
@@ -137,10 +151,19 @@ void SDLApplication::init() {
 	renderer->setCamera(camera.get());
 
 	light = std::unique_ptr<Light>(new Light(renderer.get()));
-	light->setPosition(glm::vec4(1.0f, 0.0f, -1.0f, 0.0f));
+	light->setPosition(glm::vec4(0.5f, 0.0f, -1.0f, 0.0f));
 	light->setAmbient(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light->setDiffuse(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light->setSpecular(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+	light->toggleShadowSource(true);
+	// axis aligned box that containing scene TODO: make it something move clever than hard coded values :D
+	glm::mat4 lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f);
+	// rotate so that light direction in camera space is -z
+	glm::mat4 lightView = glm::lookAt(glm::swizzle<glm::X, glm::Y, glm::Z>(-light->position()), 
+		glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	light->setViewProjection(lightProjection * lightView);
+
 	light->flushChanges();
 
 	renderer->setLight(light.get());

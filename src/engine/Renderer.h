@@ -11,6 +11,7 @@
 #include "Common.h"
 #include "UniformBuffer.h"
 #include "RenderBatch.h"
+#include "ShaderManager.h"
 
 #include <memory>
 #include <vector>
@@ -22,10 +23,15 @@ class Light;
 
 namespace gl {
 
+class ShadowMap;
 class Renderer
 {
 public:
 	Renderer();
+
+	void initialize();
+
+	ShaderManager* shaderManager();
 
 	template <class T>
 	std::unique_ptr<UniformBuffer<T>> createUniformBuffer() {
@@ -58,6 +64,9 @@ private:
 	static const int MATERIAL_BINDING_POINT = 2;
 	static const int LIGHT_BINDING_POINT = 3;
 
+	static const size_t SHADOW_MAP_SIZE = 1024;
+	static const int SHADOW_MAP_BINDING_POINT = 0;
+
 	struct State
 	{
 		State() : shader(nullptr), materialUbo(nullptr), nodeUbo(nullptr) { }
@@ -68,9 +77,48 @@ private:
 	};
 
 	void drawBatch(RenderBatch& batch);
+	void drawGeometry(GeometryBatch& geom);
 
-	std::vector<RenderBatch> batches;
-	State currentState;
+	void drawShadowMap();
+
+	Viewport m_viewport;
+
+	std::vector<RenderBatch> m_batches;
+	State m_currentState;
+
+	bool m_shadowMappingActive;
+	std::unique_ptr<ShadowMap> m_shadowMap;
+};
+
+class ShadowMap
+{
+public:
+	ShadowMap(size_t size, std::shared_ptr<ShaderProgram> shader);
+
+	GLuint fbo() {
+		return m_fbo;
+	}
+
+	GLuint depthTexture() {
+		return m_tex;
+	}
+
+	size_t size() const {
+		return m_size;
+	}
+
+	gl::ShaderProgram* shader() {
+		return m_shader.get();
+	}
+private:
+	ShadowMap(const ShadowMap&);
+	ShadowMap& operator=(const ShadowMap&);
+
+	size_t m_size;
+	std::shared_ptr<ShaderProgram> m_shader;
+
+	GLuint m_fbo;
+	GLuint m_tex;
 };
 
 }

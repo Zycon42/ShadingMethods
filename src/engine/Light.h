@@ -31,14 +31,27 @@ public:
 		return m_buffer->data().specular;
 	}
 
+	const glm::mat4& viewProjection() const {
+		return m_buffer->data().viewProjection;
+	}
+
 	void flushChanges();
 	void setPosition(const glm::vec4& value);
 	void setAmbient(const glm::vec4& value);
 	void setDiffuse(const glm::vec4& value);
 	void setSpecular(const glm::vec4& value);
+	void setViewProjection(const glm::mat4& value);
 
 	gl::IndexedBuffer* uniformBuffer() {
 		return m_buffer->internalBuffer();
+	}
+
+	bool isShadowSource() {
+		return m_isShadowSource;
+	}
+
+	void toggleShadowSource(bool value) {
+		m_isShadowSource = value;
 	}
 private:
 	struct BufferData
@@ -47,9 +60,11 @@ private:
 		glm::vec4 ambient;
 		glm::vec4 diffuse;
 		glm::vec4 specular;
+		glm::mat4 viewProjection;
 	};
 
 	std::unique_ptr<UniformBuffer<BufferData>> m_buffer;
+	bool m_isShadowSource;
 };
 
 #endif // !LIGHT_H

@@ -11,6 +11,7 @@
 #include "Node.h"
 #include "Light.h"
 #include "Logging.h"
+#include "Exception.h"
 
 #include <GL/glew.h>
 
@@ -19,8 +20,46 @@
 
 namespace gl {
 
-Renderer::Renderer() {
+ShadowMap::ShadowMap(size_t size, std::shared_ptr<ShaderProgram> shader) 
+	: m_size(size), m_shader(std::move(shader)) 
+{
+	glGenFramebuffers(1, &m_fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
+	// create depth buffer texture
+	glGenTextures(1, &m_tex);
+	glBindTexture(GL_TEXTURE_2D, m_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, size, size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+	// use texture as depth buffer
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_tex, 0);
+
+	// do not draw color buffer
+	glDrawBuffer(GL_NONE);
+
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		throw Exception("glCheckFramebufferStatus returns error");
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+Renderer::Renderer() : m_shadowMappingActive(false) {
+
+}
+
+void Renderer::initialize() {
+	glEnable(GL_DEPTH_TEST);
+}
+
+ShaderManager* Renderer::shaderManager() {
+	static ShaderManager manager;
+	return &manager;
 }
 
 void Renderer::setViewport(const Viewport& viewport) {
@@ -28,13 +67,17 @@ void Renderer::setViewport(const Viewport& viewport) {
 		static_cast<size_t>(viewport.width), static_cast<size_t>(viewport.height));
 	glDepthRange(viewport.znear, viewport.zfar);
 
-	glEnable(GL_DEPTH_TEST);
+	m_viewport = viewport;
 }
 
 void Renderer::drawFrame() {
+	if (m_shadowMappingActive) {
+		drawShadowMap();
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (auto& batch : batches) {
+	for (auto& batch : m_batches) {
 		drawBatch(batch);
 	}
 	VertexArrayObject::unbind();
@@ -46,6 +89,19 @@ void Renderer::setCamera(Camera* camera) {
 
 void Renderer::setLight(Light* light) {
 	light->uniformBuffer()->bind(LIGHT_BINDING_POINT,  GL_UNIFORM_BUFFER);
+
+	// create shadow map if we don't have one and new light is shadow source.
+	if (!m_shadowMappingActive && light->isShadowSource()) {
+		m_shadowMap = std::unique_ptr<ShadowMap>(
+			new ShadowMap(SHADOW_MAP_SIZE, shaderManager()->getGlslProgram("shadowmap"))
+		);
+
+		m_shadowMappingActive = true;
+	// release shadow map if light is no longer shadow source.
+	} else if (m_shadowMappingActive && !light->isShadowSource()) {
+		m_shadowMap = nullptr;
+		m_shadowMappingActive = false;
+	}
 }
 
 void Renderer::registerSceneNode(Node* node) {
@@ -79,10 +135,10 @@ void Renderer::registerSceneNode(Node* node) {
 	VertexArrayObject::unbind();
 	batch.geometry.reset(geom);
 
-	batches.push_back(std::move(batch));
+	m_batches.push_back(std::move(batch));
 
 	// group batches to minimize state changes
-	std::sort(batches.begin(), batches.end(), [] (RenderBatch& b1, RenderBatch& b2) {
+	std::sort(m_batches.begin(), m_batches.end(), [] (RenderBatch& b1, RenderBatch& b2) {
 		if (b1.shader != b2.shader)
 			return b1.shader < b2.shader;
 		else if (b1.materialUbo != b2.materialUbo)
@@ -97,27 +153,58 @@ void Renderer::unregisterSceneNode(Node* node) {
 }
 
 void Renderer::drawBatch(RenderBatch& batch) {
-	if (batch.shader != currentState.shader) {
+	if (batch.shader != m_currentState.shader) {
 		batch.shader->use();
-		currentState.shader = batch.shader;
+		m_currentState.shader = batch.shader;
 	}
 
-	if (batch.materialUbo != currentState.materialUbo) {
+	if (batch.materialUbo != m_currentState.materialUbo) {
 		batch.materialUbo->bind(MATERIAL_BINDING_POINT, GL_UNIFORM_BUFFER);
-		currentState.materialUbo = batch.materialUbo;
+		m_currentState.materialUbo = batch.materialUbo;
 	}
 
-	if (batch.nodeUbo != currentState.nodeUbo) {
+	if (batch.nodeUbo != m_currentState.nodeUbo) {
 		batch.nodeUbo->bind(NODE_BINDING_POINT, GL_UNIFORM_BUFFER);
-		currentState.nodeUbo = batch.nodeUbo;
+		m_currentState.nodeUbo = batch.nodeUbo;
 	}
 
-	auto geom = batch.geometry.get();
-	geom->vao().bind();
-	if (geom->hasElements())
-		glDrawElements(geom->drawMode(), geom->indexCount(), geom->elementsType(), nullptr);
+	// bind shadow map to texture unit
+	if (m_shadowMappingActive) {
+		glActiveTexture(GL_TEXTURE0 + SHADOW_MAP_BINDING_POINT);
+		glBindTexture(GL_TEXTURE_2D, m_shadowMap->depthTexture());
+	}
+
+	drawGeometry(*batch.geometry);
+}
+
+void Renderer::drawGeometry(GeometryBatch& geom) {
+	geom.vao().bind();
+	if (geom.hasElements())
+		glDrawElements(geom.drawMode(), geom.indexCount(), geom.elementsType(), nullptr);
 	else
-		glDrawArrays(geom->drawMode(), 0, geom->vertexCount());
+		glDrawArrays(geom.drawMode(), 0, geom.vertexCount());
+}
+
+void Renderer::drawShadowMap() {
+	// bind fbo and set its viewport
+	glBindFramebuffer(GL_FRAMEBUFFER, m_shadowMap->fbo());
+	glViewport(0, 0, m_shadowMap->size(), m_shadowMap->size());
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_shadowMap->shader()->use();
+	m_currentState.shader = m_shadowMap->shader();
+
+	// draw only geometry
+	for (auto& batch : m_batches) {
+		drawGeometry(*batch.geometry);
+	}
+	VertexArrayObject::unbind();
+
+	// unbound fbo and set viewport back
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(static_cast<int>(m_viewport.x), static_cast<int>(m_viewport.y), 
+		static_cast<size_t>(m_viewport.width), static_cast<size_t>(m_viewport.height));
 }
 
 }

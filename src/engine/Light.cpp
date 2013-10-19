@@ -7,7 +7,7 @@
 
 #include "Light.h"
 
-Light::Light(gl::Renderer* renderer) {
+Light::Light(gl::Renderer* renderer) : m_isShadowSource(false) {
 	m_buffer = renderer->createUniformBuffer<BufferData>();
 }
 
@@ -32,5 +32,10 @@ void Light::setDiffuse(const glm::vec4& value) {
 
 void Light::setSpecular(const glm::vec4& value) {
 	m_buffer->data().specular = value;
+	m_buffer->dataChanged();
+}
+
+void Light::setViewProjection(const glm::mat4& value) {
+	m_buffer->data().viewProjection = value;
 	m_buffer->dataChanged();
 }
