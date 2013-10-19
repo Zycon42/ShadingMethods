@@ -49,6 +49,11 @@ ShadowMap::ShadowMap(size_t size, std::shared_ptr<ShaderProgram> shader)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+ShadowMap::~ShadowMap() {
+	glDeleteTextures(1, &m_tex);
+	glDeleteFramebuffers(1, &m_fbo);
+}
+
 Renderer::Renderer() : m_shadowMappingActive(false) {
 
 }
@@ -71,9 +76,12 @@ void Renderer::setViewport(const Viewport& viewport) {
 }
 
 void Renderer::drawFrame() {
+	// optional shadow map pass
 	if (m_shadowMappingActive) {
 		drawShadowMap();
 	}
+
+	// draw normal forward pass
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

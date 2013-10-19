@@ -54,10 +54,10 @@ void main() {
 	//  - Looking elsewhere -> < 1
 	float cosAlpha = clamp(dot(E,R), 0, 1);
 	
-	float bias = 0.005;
-	vec4 shadowCoord = VertexOut.shadowCoord / VertexOut.shadowCoord.w;
+	float bias = 0.005;		// bias to prevent shadow acne
+	vec4 shadowCoord = VertexOut.shadowCoord;
 	shadowCoord.z -= bias;
-	float visibility = texture(shadowMap, shadowCoord.xyz);
+	float visibility = texture(shadowMap, shadowCoord.xyz / shadowCoord.w);
 	
 	color = 
 		// Ambient : simulates indirect lighting

@@ -134,10 +134,10 @@ void SDLApplication::init() {
 	floorMesh->setPrimitiveType(PrimitiveType::TriangleStrip);
 
 	std::vector<glm::vec3> floorVertices = create_vector<glm::vec3>
-		(glm::vec3(-4.0f, -4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
-		(glm::vec3(4.0f, -4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
-		(glm::vec3(-4.0f, 4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f))
-		(glm::vec3(4.0f, 4.0f, -1.5f))(glm::vec3(0.0f, 0.0f, 1.0f));
+		(glm::vec3(-4.0f, -4.0f, -1.5f))(glm::vec3(-0.666667f, -0.666667f, 0.333333f))
+		(glm::vec3(4.0f, -4.0f, -1.5f))(glm::vec3(0.408248f, -0.408248f, 0.816497f))
+		(glm::vec3(-4.0f, 4.0f, -1.5f))(glm::vec3(-0.333333f, 0.666667f, 0.666667f))
+		(glm::vec3(4.0f, 4.0f, -1.5f))(glm::vec3(0.816497f, 0.408248f, 0.408248f));
 	floorMesh->loadVertices(ArrayRef<char>(reinterpret_cast<char*>(floorVertices.data()), floorVertices.size() * sizeof(glm::vec3))
 		, floorVertices.size() / 2, ArrayRef<VertexElement>(layout));
 
@@ -146,7 +146,7 @@ void SDLApplication::init() {
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
 	camera->setProjectionMatrix(glm::perspective(60.0f, (float)width / height, 0.01f, 100.0f));
 	camera->setPosition(-3.0f, 0.0f, 0.5f);
-	camera->setMovementSpeed(2.0f);
+	camera->setMovementSpeed(3.0f);
 
 	renderer->setCamera(camera.get());
 

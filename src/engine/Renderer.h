@@ -94,6 +94,7 @@ class ShadowMap
 {
 public:
 	ShadowMap(size_t size, std::shared_ptr<ShaderProgram> shader);
+	~ShadowMap();
 
 	GLuint fbo() {
 		return m_fbo;
