@@ -18,23 +18,12 @@
 class Camera
 {
 public:
-	/**
-	 * Camera ctor.
-	 * @param renderer 
-	 */
-	explicit Camera(gl::Renderer* renderer);
-
 	/// Updates camera
-	virtual void update();
+	virtual void update() = 0;
 
 	/// Get OpenGL uniform buffer where camera stores matrices
 	gl::IndexedBuffer* uniformBuffer() {
 		return m_buffer->internalBuffer();
-	}
-
-	/// View matrix
-	const glm::mat4& viewMatrix() const {
-		return m_buffer->data().view;
 	}
 
 	/// Projection matrix
@@ -43,19 +32,28 @@ public:
 	}
 
 	void setProjectionMatrix(const glm::mat4& m);
-	void setViewMatrix(const glm::mat4& m);
 protected:
-	void flushChanges();
-private:
+	/**
+	 * Camera ctor.
+	 * @param renderer 
+	 */
+	explicit Camera(gl::Renderer* renderer);
+
 	struct BufferData
 	{
-		glm::mat4 projection;
 		glm::mat4 view;
+		glm::mat4 projection;
 		glm::mat4 viewProjection;
+		glm::vec3 pos;
 	};
 
+	void flushChanges();
 	void computeDerivedData();
 
+	UniformBuffer<BufferData>* buffer() {
+		return m_buffer.get();
+	}
+private:
 	std::unique_ptr<UniformBuffer<BufferData>> m_buffer;
 };
 

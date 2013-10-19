@@ -11,7 +11,9 @@ Node::Node(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material)
 	: m_mesh(std::move(mesh)), m_material(std::move(material)), m_buffer(nullptr), m_scene(nullptr) { }
 
 void Node::setModelMatrix(const glm::mat4& m) {
-	m_buffer->writeUniform(0, m);
+	BufferData data = { m,  glm::transpose(glm::inverse(m)) };
+	m_buffer->setData(data);
+	m_buffer->flushData();
 }
 
 void Node::addedToScene(Scene* scene) {

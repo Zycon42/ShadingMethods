@@ -5,43 +5,27 @@ layout(location = 1) in vec3 normal;
 
 out VertexData {
 	vec3 normal;
-	vec3 eyeDir;
-	vec3 lightDir;
+	vec3 worldPos;
 } VertexOut;
 
-layout(binding = 0) uniform CameraBlock {
+layout(binding = 0, std140) uniform CameraBlock {
 	mat4 view;
 	mat4 projection;
 	mat4 viewProjection;
+	vec3 pos;
 } camera;
 
-layout(binding = 1) uniform NodeBlock {
+layout(binding = 1, std140) uniform NodeBlock {
 	mat4 model;
+	mat4 normalMatrix;
 } node;
 
-layout(binding = 3) uniform LightBlock {
-	vec4 pos;
-	vec4 ambient;
-	vec4 diffuse;
-	vec4 specular;
-} light;
-
 void main() {
-	// TODO: move this to NodeBlock
-	mat4 modelView = camera.view * node.model;
-	mat4 normalMatrix = transpose(inverse(modelView));
-
-	// Normal of the the vertex, in camera space
-	VertexOut.normal = normalize(modelView * vec4(normal, 0)).xyz;
+	// Normal of the the vertex, in world space
+	VertexOut.normal = normalize(node.normalMatrix * vec4(normal, 0)).xyz;
 	
-	// Vector that goes from the vertex to the camera, in camera space.
-	// In camera space, the camera is at the origin (0,0,0).
-	vec3 vecPos = (modelView * vec4(pos,1)).xyz;
-	VertexOut.eyeDir = vec3(0,0,0) - vecPos;
+	// Vertex pos in world space
+	VertexOut.worldPos = (node.model * vec4(pos,1)).xyz;
 	
-	// Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
-	vec3 lightPos = (camera.view * light.pos).xyz;
-	VertexOut.lightDir = lightPos + VertexOut.eyeDir;
-	
-	gl_Position = camera.viewProjection * node.model * vec4(pos, 1);
+	gl_Position = camera.viewProjection * vec4(VertexOut.worldPos, 1);
 }

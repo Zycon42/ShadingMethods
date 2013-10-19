@@ -2,11 +2,12 @@
 
 layout(location = 0) in vec2 pos;
 
-layout(binding = 0) uniform CameraBlock
+layout(binding = 0, std140) uniform CameraBlock
 {
 	mat4 view;
 	mat4 projection;
 	mat4 viewProjection;
+	vec3 pos;
 } camera;
 
 void main() {

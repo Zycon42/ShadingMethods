@@ -137,7 +137,7 @@ void SDLApplication::init() {
 	renderer->setCamera(camera.get());
 
 	light = std::unique_ptr<Light>(new Light(renderer.get()));
-	light->setPosition(glm::vec4(-1.0f, 0.0f, 5.0f, 1.0f));
+	light->setPosition(glm::vec4(1.0f, 0.0f, -1.0f, 0.0f));
 	light->setAmbient(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light->setDiffuse(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light->setSpecular(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));

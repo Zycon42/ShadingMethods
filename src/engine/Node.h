@@ -55,6 +55,7 @@ private:
 	struct BufferData
 	{
 		glm::mat4 model;
+		glm::mat4 normalMatrix;
 	};
 
 	std::unique_ptr<UniformBuffer<BufferData>> m_buffer;

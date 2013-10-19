@@ -11,18 +11,8 @@ Camera::Camera(gl::Renderer* renderer) {
 	m_buffer = renderer->createUniformBuffer<BufferData>();
 }
 
-void Camera::update() {
-	flushChanges();
-}
-
 void Camera::setProjectionMatrix(const glm::mat4& m) {
 	m_buffer->data().projection = m;
-	computeDerivedData();
-	m_buffer->dataChanged();
-}
-
-void Camera::setViewMatrix(const glm::mat4& m) {
-	m_buffer->data().view = m;
 	computeDerivedData();
 	m_buffer->dataChanged();
 }

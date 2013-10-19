@@ -15,7 +15,11 @@ FpsCamera::FpsCamera(gl::Renderer* renderer)
 { }
 
 void FpsCamera::update() {
-	setViewMatrix(glm::lookAt(m_position, m_position + m_direction, m_up));
+	buffer()->data().view = glm::lookAt(m_position, m_position + m_direction, m_up);
+	buffer()->data().pos = m_position;
+	computeDerivedData();
+
+	buffer()->dataChanged();
 	flushChanges();
 }
 
