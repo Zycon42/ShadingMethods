@@ -17,7 +17,7 @@
 #include "FpsCamera.h"
 #include "Light.h"
 
-#include "Cube.h"
+#include "CitySceneGenerator.h"
 
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,10 +49,10 @@ int SDLApplication::run() {
 	uint64_t frameCount = 0;
 	double prevTime = getTime();
 	while (!done) {
-		calculateFps(fps, prevTime, frameCount);
 		processEvents();
 		update();
 		draw();
+		calculateFps(fps, prevTime, frameCount);
 	}
 	
 	return 0;
@@ -106,47 +106,13 @@ void SDLApplication::init() {
 
 	scene = std::unique_ptr<Scene>(new Scene(renderer.get()));
 
-	auto material = std::make_shared<PhongMaterial>(renderer.get());
-	material->setShader(renderer->shaderManager()->getGlslProgram("shadowedphong"));
-
-	PhongMaterialData materialData = { glm::vec4(0.0f, 0.1f, 0.0f, 1.0f), 
-		glm::vec4(0.8f, 0.3f, 0.1f, 1.0f), glm::vec4(0.3f, 0.3f, 0.3f, 1.0f), 5.0f };
-
-	material->properties()->setData(materialData);
-	material->properties()->flushData();
-
-	auto mesh = std::make_shared<Mesh>();
-	mesh->setPrimitiveType(PrimitiveType::TriangleList);
-	
-	std::vector<char> vertices(reinterpret_cast<const char*>(cubeVertices), 
-		reinterpret_cast<const char*>(cubeVertices) + sizeof(cubeVertices));
-	std::vector<VertexElement> layout = create_vector<VertexElement>
-		(VertexElement(3, VertexElementType::Float))(VertexElement(3, VertexElementType::Float));
-	mesh->loadVertices(vertices, cubeVerticesCount, layout);
-
-	std::vector<uint32_t> indices(reinterpret_cast<const unsigned*>(cubeIndices), 
-		reinterpret_cast<const unsigned*>(cubeIndices) + cubeIndicesCount);
-	mesh->loadIndices(indices);
-
-	scene->addNode(std::unique_ptr<Node>(new Node(mesh, material)));
-
-	auto floorMesh = std::make_shared<Mesh>();
-	floorMesh->setPrimitiveType(PrimitiveType::TriangleStrip);
-
-	std::vector<glm::vec3> floorVertices = create_vector<glm::vec3>
-		(glm::vec3(-4.0f, -4.0f, -1.5f))(glm::vec3(-0.666667f, -0.666667f, 0.333333f))
-		(glm::vec3(4.0f, -4.0f, -1.5f))(glm::vec3(0.408248f, -0.408248f, 0.816497f))
-		(glm::vec3(-4.0f, 4.0f, -1.5f))(glm::vec3(-0.333333f, 0.666667f, 0.666667f))
-		(glm::vec3(4.0f, 4.0f, -1.5f))(glm::vec3(0.816497f, 0.408248f, 0.408248f));
-	floorMesh->loadVertices(ArrayRef<char>(reinterpret_cast<char*>(floorVertices.data()), floorVertices.size() * sizeof(glm::vec3))
-		, floorVertices.size() / 2, ArrayRef<VertexElement>(layout));
-
-	scene->addNode(std::unique_ptr<Node>(new Node(floorMesh, material)));
+	CitySceneGenerator generator;
+	generator.generate(scene.get());
 
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
-	camera->setProjectionMatrix(glm::perspective(60.0f, (float)width / height, 0.01f, 100.0f));
-	camera->setPosition(-3.0f, 0.0f, 0.5f);
-	camera->setMovementSpeed(3.0f);
+	camera->setProjectionMatrix(glm::perspective(60.0f, (float)width / height, 0.1f, 1000.0f));
+	camera->setPosition(0.0f, 0.0f, 250.0f);
+	camera->setMovementSpeed(30.0f);
 
 	renderer->setCamera(camera.get());
 
@@ -156,13 +122,13 @@ void SDLApplication::init() {
 	light->setDiffuse(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	light->setSpecular(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	light->toggleShadowSource(true);
+	/*light->toggleShadowSource(true);
 	// axis aligned box that containing scene TODO: make it something move clever than hard coded values :D
 	glm::mat4 lightProjection = glm::ortho(-5.0f, 5.0f, -5.0f, 5.0f, -5.0f, 5.0f);
 	// rotate so that light direction in camera space is -z
 	glm::mat4 lightView = glm::lookAt(glm::swizzle<glm::X, glm::Y, glm::Z>(-light->position()), 
 		glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	light->setViewProjection(lightProjection * lightView);
+	light->setViewProjection(lightProjection * lightView);*/
 
 	light->flushChanges();
 
@@ -249,14 +215,17 @@ void SDLApplication::grabMouse(bool flag) {
 }
 
 void SDLApplication::calculateFps(float& fps, double& prevTime, uint64_t& frameCount) {
+	static bool first = true;
+
 	frameCount++;
 
 	double currentTime = getTime();
 	double timeInterval = currentTime - prevTime;
-	if (timeInterval > 1.0) {
+	if (timeInterval > 1.0 || first) {
 		fps = static_cast<float>(frameCount / timeInterval);
 		prevTime = currentTime;
 		frameCount = 0;
+		first = false;
 	}
 }
 

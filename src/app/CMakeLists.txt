@@ -16,11 +16,13 @@ set(SM_APPLICATION_HEADERS
 	Application.h
 	KeyboardHandler.h
 	Cube.h
+	CitySceneGenerator.h
 )
 
 set(SM_APPLICATION_SOURCES
 	Application.cpp
 	main.cpp
+	CitySceneGenerator.cpp
 )
 
 # on windows start with WinMain()
