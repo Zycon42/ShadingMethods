@@ -112,7 +112,7 @@ void SDLApplication::init() {
 	camera = std::unique_ptr<FpsCamera>(new FpsCamera(renderer.get()));
 	camera->setProjectionMatrix(glm::perspective(60.0f, (float)width / height, 0.1f, 1000.0f));
 	camera->setPosition(0.0f, 0.0f, 250.0f);
-	camera->setMovementSpeed(30.0f);
+	camera->setMovementSpeed(60.0f);
 
 	renderer->setCamera(camera.get());
 
