@@ -105,6 +105,7 @@ void SDLApplication::init() {
 	renderer->setViewport(Viewport(static_cast<float>(width), static_cast<float>(height)));
 
 	scene = std::unique_ptr<Scene>(new Scene(renderer.get()));
+	renderer->setScene(scene.get());
 
 	CitySceneGenerator generator;
 	generator.generate(scene.get());

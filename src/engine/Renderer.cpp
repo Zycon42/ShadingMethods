@@ -12,6 +12,7 @@
 #include "Light.h"
 #include "Logging.h"
 #include "Exception.h"
+#include "Scene.h"
 
 #include <GL/glew.h>
 
@@ -54,7 +55,7 @@ ShadowMap::~ShadowMap() {
 	glDeleteFramebuffers(1, &m_fbo);
 }
 
-Renderer::Renderer() : m_shadowMappingActive(false) {
+Renderer::Renderer() : m_shadowMappingActive(false), m_scene(nullptr) {
 
 }
 
@@ -75,6 +76,28 @@ void Renderer::setViewport(const Viewport& viewport) {
 	m_viewport = viewport;
 }
 
+void Renderer::drawSceneNodeBatches(SceneNode* node) {
+	if (node->isLeaf()) {
+		for (size_t i = 0; i < node->numObjects(); ++i) {
+			drawBatch(m_batches.at(node->object(i)));
+		}
+	} else {
+		drawSceneNodeBatches(node->leftChild());
+		drawSceneNodeBatches(node->rightChild());
+	}
+}
+
+void Renderer::drawSceneNodeGeometry(SceneNode* node) {
+	if (node->isLeaf()) {
+		for (size_t i = 0; i < node->numObjects(); ++i) {
+			drawGeometry(*m_batches.at(node->object(i)).geometry);
+		}
+	} else {
+		drawSceneNodeGeometry(node->leftChild());
+		drawSceneNodeGeometry(node->rightChild());
+	}
+}
+
 void Renderer::drawFrame() {
 	// optional shadow map pass
 	if (m_shadowMappingActive) {
@@ -85,9 +108,11 @@ void Renderer::drawFrame() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for (auto& batch : m_batches) {
-		drawBatch(batch);
-	}
+	//for (auto& batch : m_batches) {
+	//	drawBatch(batch);
+	//}
+	drawSceneNodeBatches(m_scene->rootNode());
+
 	VertexArrayObject::unbind();
 }
 
@@ -112,17 +137,21 @@ void Renderer::setLight(Light* light) {
 	}
 }
 
-void Renderer::registerSceneNode(Node* node) {
-	assert(node->material() != nullptr && node->mesh() != nullptr);
+void Renderer::setScene(Scene* scene) {
+	m_scene = scene;
+}
+
+void Renderer::registerRenderable(IRenderable* renderable) {
+	assert(renderable->material() != nullptr && renderable->mesh() != nullptr);
 
 	RenderBatch batch;
-	batch.shader = node->material()->shader();
-	batch.materialUbo = node->material()->uniformBuffer();
-	batch.nodeUbo = node->uniformBuffer();
+	batch.shader = renderable->material()->shader();
+	batch.materialUbo = renderable->material()->uniformBuffer();
+	batch.nodeUbo = renderable->uniformBuffer();
 
-	auto mesh = node->mesh();
+	auto mesh = renderable->mesh();
 	if (!mesh->isValid()) {
-		LOG(ERROR) << "Scene node with invalid mesh registered to renderer.";
+		LOG(ERROR) << "Renderable with invalid mesh registered to renderer.";
 		return;
 	}
 
@@ -143,20 +172,21 @@ void Renderer::registerSceneNode(Node* node) {
 	VertexArrayObject::unbind();
 	batch.geometry.reset(geom);
 
-	m_batches.push_back(std::move(batch));
+	//m_batches.push_back(std::move(batch));
+	m_batches.insert(std::make_pair(renderable, std::move(batch)));
 
 	// group batches to minimize state changes
-	std::sort(m_batches.begin(), m_batches.end(), [] (RenderBatch& b1, RenderBatch& b2) {
+	/*std::sort(m_batches.begin(), m_batches.end(), [] (RenderBatch& b1, RenderBatch& b2) {
 		if (b1.shader != b2.shader)
 			return b1.shader < b2.shader;
 		else if (b1.materialUbo != b2.materialUbo)
 			return b1.materialUbo < b2.materialUbo;
 		else
 			return b1.nodeUbo < b2.nodeUbo;
-	});
+	});*/
 }
 
-void Renderer::unregisterSceneNode(Node* node) {
+void Renderer::unregisterRenderable(IRenderable* renderable) {
 	LOG(ERROR) << "Renderer::unregisterSceneNode not implemented.";
 }
 
@@ -204,9 +234,10 @@ void Renderer::drawShadowMap() {
 	m_currentState.shader = m_shadowMap->shader();
 
 	// draw only geometry
-	for (auto& batch : m_batches) {
+	/*for (auto& batch : m_batches) {
 		drawGeometry(*batch.geometry);
-	}
+	}*/
+	drawSceneNodeGeometry(m_scene->rootNode());
 	VertexArrayObject::unbind();
 
 	// unbound fbo and set viewport back

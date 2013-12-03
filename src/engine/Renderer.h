@@ -12,14 +12,17 @@
 #include "UniformBuffer.h"
 #include "RenderBatch.h"
 #include "ShaderManager.h"
+#include "Interfaces.h"
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 class Camera;
 class IMaterial;
-class Node;
 class Light;
+class Scene;
+class SceneNode;
 
 namespace gl {
 
@@ -39,14 +42,14 @@ public:
 	}
 
 	template <class T>
-	std::unique_ptr<UniformBuffer<T>> createUniformBuffer(T&& initialData) {
-		return std::unique_ptr<UniformBuffer<T>>(new UniformBuffer<T>(std::forward<T>(initialData)));
+	std::unique_ptr<UniformBuffer<T>> createUniformBuffer(const T& initialData) {
+		return std::unique_ptr<UniformBuffer<T>>(new UniformBuffer<T>(initialData));
 	}
 
 	/// Register scene node in render, so he will draw it.
-	void registerSceneNode(Node* node);
+	void registerRenderable(IRenderable* renderable);
 	/// Stops drawing given node.
-	void unregisterSceneNode(Node* node);
+	void unregisterRenderable(IRenderable* renderable);
 
 	void setViewport(const Viewport& viewport);
 
@@ -55,6 +58,9 @@ public:
 
 	/// Sets light which will be used.
 	void setLight(Light* light);
+
+	/// Sets current scene to draw
+	void setScene(Scene* scene);
 
 	/// Draw single frame, drawing all registered nodes
 	void drawFrame();
@@ -79,15 +85,20 @@ private:
 	void drawBatch(RenderBatch& batch);
 	void drawGeometry(GeometryBatch& geom);
 
+	void drawSceneNodeBatches(SceneNode* node);
+	void drawSceneNodeGeometry(SceneNode* node);
+
 	void drawShadowMap();
 
 	Viewport m_viewport;
 
-	std::vector<RenderBatch> m_batches;
+	std::unordered_map<IRenderable*, RenderBatch> m_batches;
 	State m_currentState;
 
 	bool m_shadowMappingActive;
 	std::unique_ptr<ShadowMap> m_shadowMap;
+
+	Scene* m_scene;
 };
 
 class ShadowMap

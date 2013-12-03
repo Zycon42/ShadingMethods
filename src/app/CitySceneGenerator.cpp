@@ -16,6 +16,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/swizzle.hpp>
 
 struct BuildingVertex
 {
@@ -46,6 +47,54 @@ static const uint32_t buildingIndices[] = {
 	3, 4, 0,
 	4, 7, 6,
 	4, 6, 5
+};
+
+class Building : public AbstractNode
+{
+public:
+	Building(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material) 
+		: AbstractNode(mesh, material) { }
+
+	void calculateBBox() {
+		glm::vec3 min, max;
+		for (int i = 0; i < 8; ++i) {
+			const float* p = buildingVertices[i].pos;
+			glm::vec4 ppos = modelMatrix() * glm::vec4(p[0], p[1], p[2], 1.0f);
+			glm::vec3 point = glm::swizzle<glm::X, glm::Y, glm::Z>(ppos);
+			if (i == 0) {
+				min = point;
+				max = point;
+			} else {
+				if (point.x > max.x)
+					max.x = point.x;
+				if (point.y > max.y)
+					max.y = point.y;
+				if (point.z > max.z)
+					max.z = point.z;
+
+				if (point.x < min.x)
+					min.x = point.x;
+				if (point.y < min.y)
+					min.y = point.y;
+				if (point.z < min.z)
+					min.z = point.z;
+			}
+		}
+
+		m_bbox = BoundingBox(min, max);
+		m_centroid = min + ((max - min) / 2.0f);
+	}
+
+	virtual BoundingBox boundingBox() const {
+		return m_bbox;
+	}
+
+	virtual glm::vec3 centroid() const {
+		return m_centroid;
+	}
+private:
+	BoundingBox m_bbox;
+	glm::vec3 m_centroid;
 };
 
 CitySceneGenerator::CitySceneGenerator() {
@@ -90,8 +139,9 @@ void CitySceneGenerator::generate(Scene* scene) {
 	std::uniform_real_distribution<float> positionDist(-citySize, citySize);
 	std::uniform_real_distribution<float> canonicalDist;
 
+	std::vector<std::shared_ptr<AbstractNode>> buildings;
 	for (size_t i = 0; i < numBuildings; i++) {
-		auto node = std::unique_ptr<Node>(new Node(mesh, material));
+		auto building = std::make_shared<Building>(mesh, material);
 
 		// set random position
 		glm::mat4 model = glm::translate(glm::mat4(1.0f),
@@ -110,8 +160,11 @@ void CitySceneGenerator::generate(Scene* scene) {
 			* (maxHeightToWidthRatio - minHeightToWidthRatio) + minHeightToWidthRatio;
 		model = glm::scale(model, scale);
 
-		Node* pNode = node.get();
-		scene->addNode(std::move(node));
-		pNode->setModelMatrix(model);
+		building->setModelMatrix(model);
+		building->calculateBBox();
+
+		buildings.push_back(building);
 	}
+
+	scene->setStaticGeometry(std::move(buildings));
 }

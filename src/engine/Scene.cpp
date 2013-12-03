@@ -7,40 +7,50 @@
 
 #include "Scene.h"
 #include "Node.h"
+#include "Logging.h"
+
+#include <SDL.h>
+
+double getTime() {
+	static uint64_t freq;
+	static bool first = true;
+	if (first) {
+		first = false;
+		freq = SDL_GetPerformanceFrequency();
+	}
+
+	uint64_t counter = SDL_GetPerformanceCounter();
+	return static_cast<double>(counter) / static_cast<double>(freq);
+}
 
 void Scene::changeRenderer(gl::Renderer* renderer) {
 	m_renderer = renderer;
-	for (auto& node : m_nodes) {
+	for (auto& node : m_objects) {
 		node->sceneRendererChanged();
 	}
 }
 
-void Scene::addNode(std::unique_ptr<Node> node) {
-	node->addedToScene(this);
-	m_renderer->registerSceneNode(node.get());
+void Scene::setStaticGeometry(std::vector<std::shared_ptr<AbstractNode>> objects) {
+	m_objects = std::move(objects);
+	for (auto& obj : m_objects) {
+		obj->addedToScene(this);
+		m_renderer->registerRenderable(obj.get());
+	}
 
-	m_nodes.emplace_back(std::move(node));
+	volatile double t1 = getTime();
+	m_bvh = std::unique_ptr<BVH>(BVH::build(m_objects.begin(), m_objects.end()));
+	m_root = std::unique_ptr<SceneNode>(buildTree(0));
+	volatile double t2 = getTime();
+
+	LOG(INFO) << "Building BVH took: " << (t2 - t1) * 1000 << " ms";
 }
 
-void Scene::removeNode(size_t index) {
-	auto nodeIt = m_nodes.begin() + index;
-	m_renderer->unregisterSceneNode(nodeIt->get());
-	m_nodes.erase(nodeIt);
-}
-
-std::unique_ptr<Node> Scene::extractNode(size_t index) {
-	auto nodeIt = m_nodes.begin() + index;
-	auto node = std::move(*nodeIt);
-	m_nodes.erase(nodeIt);
-
-	node->removedFromScene();
+SceneNode* Scene::buildTree(size_t iBvhNode, SceneNode* parent) {
+	BVH::Node* bvhNode = &m_bvh->nodes()[iBvhNode];
+	SceneNode* node = new SceneNode(this, bvhNode, parent);
+	if (bvhNode->rightOffset != 0) {
+		node->m_left = std::unique_ptr<SceneNode>(buildTree(iBvhNode + 1, node));
+		node->m_right = std::unique_ptr<SceneNode>(buildTree(iBvhNode + bvhNode->rightOffset, node));
+	}
 	return node;
-}
-
-void Scene::nodeGeometryChanged(Node* node) {
-	// TODO:
-}
-
-void Scene::nodeMaterialChanged(Node* node) {
-	// TODO:
 }
