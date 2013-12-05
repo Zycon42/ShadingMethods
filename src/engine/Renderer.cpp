@@ -8,7 +8,7 @@
 #include "Renderer.h"
 
 #include "Camera.h"
-#include "Node.h"
+#include "BaseSceneObject.h"
 #include "Light.h"
 #include "Logging.h"
 #include "Exception.h"
@@ -165,7 +165,7 @@ void Renderer::setScene(Scene* scene) {
 	m_scene = scene;
 }
 
-void Renderer::registerRenderable(IRenderable* renderable) {
+void Renderer::registerSceneObject(ISceneObject* renderable) {
 	assert(renderable->material() != nullptr && renderable->mesh() != nullptr);
 
 	RenderBatch batch;
@@ -209,7 +209,7 @@ void Renderer::registerRenderable(IRenderable* renderable) {
 	});*/
 }
 
-void Renderer::unregisterRenderable(IRenderable* renderable) {
+void Renderer::unregisterSceneObject(ISceneObject* renderable) {
 	LOG(ERROR) << "Renderer::unregisterSceneNode not implemented.";
 }
 

@@ -46,10 +46,10 @@ public:
 		return std::unique_ptr<UniformBuffer<T>>(new UniformBuffer<T>(initialData));
 	}
 
-	/// Register scene node in render, so he will draw it.
-	void registerRenderable(IRenderable* renderable);
-	/// Stops drawing given node.
-	void unregisterRenderable(IRenderable* renderable);
+	/// Register scene object in render, so he will draw it.
+	void registerSceneObject(ISceneObject* renderable);
+	/// Stops drawing given object.
+	void unregisterSceneObject(ISceneObject* renderable);
 
 	void setViewport(const Viewport& viewport);
 
@@ -98,7 +98,7 @@ private:
 
 	Viewport m_viewport;
 
-	std::unordered_map<IRenderable*, RenderBatch> m_batches;
+	std::unordered_map<ISceneObject*, RenderBatch> m_batches;
 	State m_currentState;
 
 	bool m_shadowMappingActive;

@@ -12,7 +12,7 @@
 #include "Common.h"
 #include "Renderer.h"
 #include "Scene.h"
-#include "Node.h"
+#include "BaseSceneObject.h"
 #include "ShaderManager.h"
 #include "FpsCamera.h"
 #include "Light.h"

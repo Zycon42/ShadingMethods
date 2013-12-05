@@ -6,7 +6,7 @@
  */
 
 #include "Scene.h"
-#include "Node.h"
+#include "BaseSceneObject.h"
 #include "Logging.h"
 
 #include <SDL.h>
@@ -30,11 +30,11 @@ void Scene::changeRenderer(gl::Renderer* renderer) {
 	}
 }
 
-void Scene::setStaticGeometry(std::vector<std::shared_ptr<AbstractNode>> objects) {
+void Scene::setStaticGeometry(std::vector<std::shared_ptr<BaseSceneObject>> objects) {
 	m_objects = std::move(objects);
 	for (auto& obj : m_objects) {
 		obj->addedToScene(this);
-		m_renderer->registerRenderable(obj.get());
+		m_renderer->registerSceneObject(obj.get());
 	}
 
 	volatile double t1 = getTime();

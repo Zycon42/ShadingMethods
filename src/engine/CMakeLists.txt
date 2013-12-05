@@ -20,7 +20,7 @@ set(SM_ENGINE_HEADERS
 	ShaderProgram.h
 	Buffer.h
 	Material.h
-	Node.h
+	BaseSceneObject.h
 	Scene.h
 	Camera.h
 	FpsCamera.h
@@ -39,7 +39,7 @@ set(SM_ENGINE_SOURCES
 	Mesh.cpp
 	Shader.cpp
 	ShaderProgram.cpp
-	Node.cpp
+	BaseSceneObject.cpp
 	Scene.cpp
 	Camera.cpp
 	FpsCamera.cpp

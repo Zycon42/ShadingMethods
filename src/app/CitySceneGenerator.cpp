@@ -12,7 +12,7 @@
 #include "Common.h"
 #include "Helpers.h"
 #include "Mesh.h"
-#include "Node.h"
+#include "BaseSceneObject.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -49,11 +49,11 @@ static const uint32_t buildingIndices[] = {
 	4, 6, 5
 };
 
-class Building : public AbstractNode
+class Building : public BaseSceneObject
 {
 public:
 	Building(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material) 
-		: AbstractNode(mesh, material) { }
+		: BaseSceneObject(mesh, material) { }
 
 	void calculateBBox() {
 		glm::vec3 min, max;
@@ -139,7 +139,7 @@ void CitySceneGenerator::generate(Scene* scene) {
 	std::uniform_real_distribution<float> positionDist(-citySize, citySize);
 	std::uniform_real_distribution<float> canonicalDist;
 
-	std::vector<std::shared_ptr<AbstractNode>> buildings;
+	std::vector<std::shared_ptr<BaseSceneObject>> buildings;
 	for (size_t i = 0; i < numBuildings; i++) {
 		auto building = std::make_shared<Building>(mesh, material);
 

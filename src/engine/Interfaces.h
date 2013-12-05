@@ -10,9 +10,13 @@
 
 #include "BoundingBox.h"
 
-/**
- * Interface for storing objects in BVH.
- */
+class Mesh;
+class IMaterial;
+
+namespace gl {
+	class IndexedBuffer;
+}
+
 class ISceneObject
 {
 public:
@@ -23,19 +27,6 @@ public:
 
 	/// Gets node center point
 	virtual glm::vec3 centroid() const = 0;
-};
-
-class Mesh;
-class IMaterial;
-
-namespace gl {
-	class IndexedBuffer;
-}
-
-class IRenderable
-{
-public:
-	virtual ~IRenderable() { }
 
 	virtual Mesh* mesh() = 0;
 

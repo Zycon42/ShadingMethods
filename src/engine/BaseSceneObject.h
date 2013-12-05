@@ -5,8 +5,8 @@
  * @date 2013
  */
 
-#ifndef NODE_H
-#define NODE_H
+#ifndef BASE_SCENE_OBJECT_H
+#define BASE_SCENE_OBJECT_H
 
 #include "Interfaces.h"
 #include "Scene.h"
@@ -16,14 +16,14 @@
 #include <glm/glm.hpp>
 
 /**
- * Scene node.
+ * Scene object.
  * Contains mesh, material and node transforms
  */
-class AbstractNode : public IRenderable, public ISceneObject
+class BaseSceneObject : public ISceneObject
 {
 public:
 	/// Create node from mesh and material.
-	AbstractNode(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material);
+	BaseSceneObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material);
 
 	virtual Mesh* mesh() {
 		return m_mesh.get();
@@ -66,4 +66,4 @@ private:
 	Scene* m_scene;
 };
 
-#endif // !NODE_H
+#endif // !BASE_SCENE_OBJECT_H

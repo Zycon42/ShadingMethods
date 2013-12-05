@@ -5,12 +5,12 @@
  * @date 2013
  */
 
-#include "Node.h"
+#include "BaseSceneObject.h"
 
-AbstractNode::AbstractNode(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material)
+BaseSceneObject::BaseSceneObject(std::shared_ptr<Mesh> mesh, std::shared_ptr<IMaterial> material)
 	: m_mesh(std::move(mesh)), m_material(std::move(material)), m_buffer(nullptr), m_scene(nullptr) { }
 
-void AbstractNode::setModelMatrix(const glm::mat4& m) {
+void BaseSceneObject::setModelMatrix(const glm::mat4& m) {
 	BufferData data = { m,  glm::transpose(glm::inverse(m)) };
 	if (m_buffer) {
 		m_buffer->setData(data);
@@ -20,28 +20,28 @@ void AbstractNode::setModelMatrix(const glm::mat4& m) {
 	}
 }
 
-void AbstractNode::addedToScene(Scene* scene) {
+void BaseSceneObject::addedToScene(Scene* scene) {
 	m_scene = scene;
 	createUniformBuffer(scene->renderer());
 }
 
-void AbstractNode::sceneRendererChanged() {
+void BaseSceneObject::sceneRendererChanged() {
 	createUniformBuffer(m_scene->renderer());
 }
 
-void AbstractNode::removedFromScene() {
+void BaseSceneObject::removedFromScene() {
 	m_buffer = nullptr;
 	m_scene = nullptr;
 }
 
-void AbstractNode::createUniformBuffer(gl::Renderer* renderer) {
+void BaseSceneObject::createUniformBuffer(gl::Renderer* renderer) {
 	m_buffer = renderer->createUniformBuffer<BufferData>(m_memoryData);
 }
 
-void AbstractNode::setMesh(std::shared_ptr<Mesh> mesh) {
+void BaseSceneObject::setMesh(std::shared_ptr<Mesh> mesh) {
 	m_mesh = std::move(mesh);
 }
 
-void AbstractNode::setMaterial(std::shared_ptr<IMaterial> material) {
+void BaseSceneObject::setMaterial(std::shared_ptr<IMaterial> material) {
 	m_material = std::move(material);
 }

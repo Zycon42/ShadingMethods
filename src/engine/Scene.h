@@ -14,7 +14,7 @@
 #include <memory>
 #include <vector>
 
-class AbstractNode;
+class BaseSceneObject;
 class SceneNode;
 
 /**
@@ -33,7 +33,7 @@ public:
 	/// Change renderer which scene is bound to.
 	void changeRenderer(gl::Renderer* renderer);
 
-	void setStaticGeometry(std::vector<std::shared_ptr<AbstractNode>> nodes);
+	void setStaticGeometry(std::vector<std::shared_ptr<BaseSceneObject>> nodes);
 
 	SceneNode* rootNode() {
 		return m_root.get();
@@ -47,7 +47,7 @@ private:
 	friend class SceneNode;
 
 	gl::Renderer* m_renderer;
-	std::vector<std::shared_ptr<AbstractNode>> m_objects;
+	std::vector<std::shared_ptr<BaseSceneObject>> m_objects;
 	std::unique_ptr<BVH> m_bvh;
 	std::unique_ptr<SceneNode> m_root;
 };
@@ -63,7 +63,7 @@ public:
 		return m_bvhNode->numObjects;
 	}
 
-	AbstractNode* object(size_t i) {
+	BaseSceneObject* object(size_t i) {
 		return m_scene->m_objects[m_bvhNode->start + i].get();
 	}
 
