@@ -83,6 +83,10 @@ void Renderer::setViewport(const Viewport& viewport) {
 }
 
 void Renderer::drawSceneNodeBatches(SceneNode* node) {
+	// view frustum culling
+	if (m_camera->viewFrustum().boundingBoxIntersetion(node->boundingBox()) == Frustum::Intersection::None)
+		return;
+
 	if (m_showBboxes)
 		m_bboxDrawer->add(node->boundingBox());
 
@@ -135,6 +139,7 @@ void Renderer::drawFrame() {
 
 void Renderer::setCamera(Camera* camera) {
 	camera->uniformBuffer()->bind(CAMERA_BINDING_POINT, GL_UNIFORM_BUFFER);
+	m_camera = camera;
 }
 
 void Renderer::setLight(Light* light) {

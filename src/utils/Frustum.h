@@ -16,11 +16,14 @@ class Frustum
 public:
 	enum class Intersection { None, Partialy, Inside };
 
+	/**
+	 * Creates frustum from view projection matrix
+	 * @see http://www.cs.otago.ac.nz/postgrads/alexis/planeExtraction.pdf
+	 */
 	Frustum(const glm::mat4& vp);
 
-	Intersection boundingBoxIntersetion(const BoundingBox& bbox);
+	Intersection boundingBoxIntersetion(const BoundingBox& bbox) const;
 private:
-	enum { TOP, BOTTOM, LEFT, RIGHT, NEAR, FAR };
 	Plane m_planes[6];
 };
 

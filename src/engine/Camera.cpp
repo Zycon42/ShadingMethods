@@ -7,7 +7,7 @@
 
 #include "Camera.h"
 
-Camera::Camera(gl::Renderer* renderer) {
+Camera::Camera(gl::Renderer* renderer) : m_viewFrustum(glm::mat4(1.0f)) {
 	m_buffer = renderer->createUniformBuffer<BufferData>();
 }
 
@@ -24,5 +24,8 @@ void Camera::flushChanges() {
 void Camera::computeDerivedData() {
 	auto projection = m_buffer->data().projection;
 	auto view = m_buffer->data().view;
-	m_buffer->data().viewProjection = projection * view;
+	auto viewProjection = projection * view;
+	m_buffer->data().viewProjection = viewProjection;
+
+	m_viewFrustum = Frustum(viewProjection);
 }

@@ -9,8 +9,7 @@
 #define CAMERA_H
 
 #include "Renderer.h"
-
-#include <glm/glm.hpp>
+#include "Frustum.h"
 
 /**
  * Base class for all cameras
@@ -36,6 +35,10 @@ public:
 	const glm::mat4& viewMatrix() const {
 		return m_buffer->data().view;
 	}
+
+	const Frustum& viewFrustum() const {
+		return m_viewFrustum;
+	}
 protected:
 	/**
 	 * Camera ctor.
@@ -59,6 +62,7 @@ protected:
 	}
 private:
 	std::unique_ptr<UniformBuffer<BufferData>> m_buffer;
+	Frustum m_viewFrustum;
 };
 
 #endif // !CAMERA_H

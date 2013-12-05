@@ -199,9 +199,9 @@ void SDLApplication::handleKeyboard() {
 
 	static const float rollSpeed = 45.0f;
 	if (keyboardHandler.isPressed(SDLK_q))
-		camera->roll(rollSpeed / fps);
-	if (keyboardHandler.isPressed(SDLK_e))
 		camera->roll(-rollSpeed / fps);
+	if (keyboardHandler.isPressed(SDLK_e))
+		camera->roll(rollSpeed / fps);
 }
 
 void SDLApplication::handleMouseMove(int xrel, int yrel) {

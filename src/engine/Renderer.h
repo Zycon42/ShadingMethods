@@ -98,6 +98,8 @@ private:
 
 	Viewport m_viewport;
 
+	Camera* m_camera;
+
 	std::unordered_map<ISceneObject*, RenderBatch> m_batches;
 	State m_currentState;
 

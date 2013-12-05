@@ -128,8 +128,8 @@ void CitySceneGenerator::generate(Scene* scene) {
 		reinterpret_cast<const unsigned*>(buildingIndices) + buildingIndicesCount);
 	mesh->loadIndices(indices);
 
-	size_t numBuildings = 100;
-	float citySize = 200.0f;
+	size_t numBuildings = 1000;
+	float citySize = 500.0f;
 	float minBuildingSize = 10.0f;
 	float maxBuildingSize = 60.0f;
 	float minHeightToWidthRatio = 8.0f;
