@@ -32,6 +32,10 @@ public:
 	}
 
 	void setProjectionMatrix(const glm::mat4& m);
+
+	const glm::mat4& viewMatrix() const {
+		return m_buffer->data().view;
+	}
 protected:
 	/**
 	 * Camera ctor.

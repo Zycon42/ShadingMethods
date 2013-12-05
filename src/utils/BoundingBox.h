@@ -8,11 +8,7 @@
 #ifndef BOUNDING_BOX_H
 #define BOUNDING_BOX_H
 
-#include "RenderBatch.h"
-
 #include <glm/glm.hpp>
-
-#include <memory>
 
 /**
  * Axis aligned bounding box.
@@ -27,12 +23,6 @@ public:
 	BoundingBox(const glm::vec3& point);
 	/// Creates bounding box from min and max points.
 	BoundingBox(const glm::vec3& min, const glm::vec3& max);
-
-	BoundingBox(const BoundingBox& other);
-	BoundingBox(BoundingBox&& other);
-	BoundingBox& operator=(BoundingBox other);
-
-	friend void swap(BoundingBox& first, BoundingBox& second);
 
 	/// Gets minimum point
 	const glm::vec3& min() const {
@@ -51,17 +41,10 @@ public:
 
 	/// Gets index of dimension where bbox has maximum size
 	int maxDimension() const;
-
-	/// Gets drawable geometry for bounding box note that necessary buffers
-	/// are computed on first run
-	gl::GeometryBatch* drawableGeometry() const;
 private:
 	glm::vec3 m_min;
 	glm::vec3 m_max;
 	glm::vec3 m_extent;
-
-	mutable bool m_sizeChanged;
-	mutable std::unique_ptr<gl::GeometryBatch> m_geometry;
 };
 
 #endif // BOUNDING_BOX_H

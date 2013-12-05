@@ -28,10 +28,10 @@ set(SM_ENGINE_HEADERS
 	UniformBuffer.h
 	ShaderManager.h
 	Light.h
-	BoundingBox.h
 	Interfaces.h
 	BVH.h
 	VertexArrayObject.h
+	BoundingBoxDrawer.h
 )
 
 set(SM_ENGINE_SOURCES
@@ -46,7 +46,7 @@ set(SM_ENGINE_SOURCES
 	RenderBatch.cpp
 	ShaderManager.cpp
 	Light.cpp
-	BoundingBox.cpp
+	BoundingBoxDrawer.cpp
 )
 
 add_library(engine ${SM_ENGINE_SOURCES} ${SM_ENGINE_HEADERS})

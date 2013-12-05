@@ -13,6 +13,7 @@
 #include "Logging.h"
 #include "Exception.h"
 #include "Scene.h"
+#include "BoundingBoxDrawer.h"
 
 #include <GL/glew.h>
 
@@ -55,11 +56,16 @@ ShadowMap::~ShadowMap() {
 	glDeleteFramebuffers(1, &m_fbo);
 }
 
-Renderer::Renderer() : m_shadowMappingActive(false), m_showBboxes(false), m_scene(nullptr) {
+Renderer::Renderer() : m_shadowMappingActive(false), m_showBboxes(false), 
+	m_scene(nullptr) {
 
 }
 
+Renderer::~Renderer() { }
+
 void Renderer::initialize() {
+	m_bboxDrawer = std::unique_ptr<BoundingBoxDrawer>(new BoundingBoxDrawer(this));
+
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -76,25 +82,14 @@ void Renderer::setViewport(const Viewport& viewport) {
 	m_viewport = viewport;
 }
 
-void Renderer::drawBoundingBox(const BoundingBox& bbox) {
-
-	auto shader = shaderManager()->getGlslProgram("simple");
-
-	shader->use();
-
-	auto geom = bbox.drawableGeometry();
-	geom->vao().bind();
-	glDrawElements(geom->drawMode(), geom->indexCount(), geom->elementsType(), nullptr);
-}
-
 void Renderer::drawSceneNodeBatches(SceneNode* node) {
 	if (m_showBboxes)
-		m_bboxDrawList.push_back(node->boundingBox());
+		m_bboxDrawer->add(node->boundingBox());
 
 	if (node->isLeaf()) {
 		for (size_t i = 0; i < node->numObjects(); ++i) {
 			if (m_showBboxes)
-				m_bboxDrawList.push_back(node->object(i)->boundingBox());
+				m_bboxDrawer->add(node->object(i)->boundingBox());
 			drawBatch(m_batches.at(node->object(i)));
 		}
 	} else {
@@ -124,14 +119,12 @@ void Renderer::drawFrame() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_showBboxes)
-		m_bboxDrawList.clear();
-
 	drawSceneNodeBatches(m_scene->rootNode());
 
 	if (m_showBboxes) {
-		for (auto& bbox : m_bboxDrawList)
-			drawBoundingBox(bbox);
+		m_bboxDrawer->draw();
+
+		m_bboxDrawer->clear();
 
 		if (m_currentState.shader)
 			m_currentState.shader->use();

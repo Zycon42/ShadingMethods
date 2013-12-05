@@ -26,11 +26,13 @@ class SceneNode;
 
 namespace gl {
 
+class BoundingBoxDrawer;
 class ShadowMap;
 class Renderer
 {
 public:
 	Renderer();
+	~Renderer();
 
 	void initialize();
 
@@ -94,8 +96,6 @@ private:
 
 	void drawShadowMap();
 
-	void drawBoundingBox(const BoundingBox& bbox);
-
 	Viewport m_viewport;
 
 	std::unordered_map<ISceneObject*, RenderBatch> m_batches;
@@ -106,7 +106,7 @@ private:
 
 	Scene* m_scene;
 	bool m_showBboxes;
-	std::vector<BoundingBox> m_bboxDrawList;
+	std::unique_ptr<BoundingBoxDrawer> m_bboxDrawer;
 };
 
 class ShadowMap
