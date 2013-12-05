@@ -20,18 +20,38 @@ class KeyboardHandler
 {
 public:
 	void handleEvent(SDL_KeyboardEvent& event) {
-		m_keyStates[event.keysym.sym] = event.state == SDL_PRESSED ? true : false;
+		auto key = event.keysym.sym;
+		if (event.state == SDL_PRESSED) {
+			m_keyStates[key].pressed = true;
+		} else if (event.state == SDL_RELEASED) {
+			m_keyStates[key].once = false;
+			m_keyStates[key].pressed = false;
+		}
 	}
 
 	bool isPressed(SDL_Keycode code) {
-		return m_keyStates[code] == true;
+		return m_keyStates[code].pressed == true;
+	}
+
+	bool isPressedOnce(SDL_Keycode code) {
+		bool pressed = m_keyStates[code].pressed;
+		bool result = pressed == true && m_keyStates[code].once == false;
+		if (pressed)
+			m_keyStates[code].once = true;
+		return result;
 	}
 
 	bool isReleased(SDL_Keycode code) {
-		return m_keyStates[code] == false;
+		return m_keyStates[code].pressed == false;
 	}
 private:
-	std::unordered_map<SDL_Keycode, bool> m_keyStates;
+	struct State 
+	{
+		bool pressed;
+		bool once;
+	};
+
+	std::unordered_map<SDL_Keycode, State> m_keyStates;
 };
 
 #endif // !KEYBOARD_HANDLER_H

@@ -31,6 +31,7 @@ set(SM_ENGINE_HEADERS
 	BoundingBox.h
 	Interfaces.h
 	BVH.h
+	VertexArrayObject.h
 )
 
 set(SM_ENGINE_SOURCES

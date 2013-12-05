@@ -1,6 +1,6 @@
 #version 420
 
-layout(location = 0) in vec2 pos;
+layout(location = 0) in vec3 pos;
 
 layout(binding = 0, std140) uniform CameraBlock
 {
@@ -11,5 +11,5 @@ layout(binding = 0, std140) uniform CameraBlock
 } camera;
 
 void main() {
-	gl_Position = camera.viewProjection * vec4(pos, 0, 1);
+	gl_Position = camera.viewProjection * vec4(pos, 1);
 }

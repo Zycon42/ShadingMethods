@@ -181,7 +181,7 @@ void SDLApplication::handleKeyboard() {
 		return;
 	}
 
-	if (keyboardHandler.isPressed(SDLK_LALT)) {
+	if (keyboardHandler.isPressedOnce(SDLK_LALT)) {
 		grabMouse(!mouseGrabbed);
 	}
 
@@ -193,6 +193,9 @@ void SDLApplication::handleKeyboard() {
 		camera->goLeft(fps);
 	if (keyboardHandler.isPressed(SDLK_d))
 		camera->goRight(fps);
+
+	if (keyboardHandler.isPressedOnce(SDLK_b))
+		renderer->toggleBboxVisibility();
 
 	static const float rollSpeed = 45.0f;
 	if (keyboardHandler.isPressed(SDLK_q))

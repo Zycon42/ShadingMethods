@@ -64,6 +64,10 @@ public:
 
 	/// Draw single frame, drawing all registered nodes
 	void drawFrame();
+
+	void showBboxes() { m_showBboxes = true; }
+	void hideBboxes() { m_showBboxes = false; }
+	void toggleBboxVisibility() { m_showBboxes = !m_showBboxes; }
 private:
 	static const int CAMERA_BINDING_POINT = 0;
 	static const int NODE_BINDING_POINT = 1;
@@ -90,6 +94,8 @@ private:
 
 	void drawShadowMap();
 
+	void drawBoundingBox(const BoundingBox& bbox);
+
 	Viewport m_viewport;
 
 	std::unordered_map<IRenderable*, RenderBatch> m_batches;
@@ -99,6 +105,8 @@ private:
 	std::unique_ptr<ShadowMap> m_shadowMap;
 
 	Scene* m_scene;
+	bool m_showBboxes;
+	std::vector<BoundingBox> m_bboxDrawList;
 };
 
 class ShadowMap

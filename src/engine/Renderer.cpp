@@ -55,7 +55,7 @@ ShadowMap::~ShadowMap() {
 	glDeleteFramebuffers(1, &m_fbo);
 }
 
-Renderer::Renderer() : m_shadowMappingActive(false), m_scene(nullptr) {
+Renderer::Renderer() : m_shadowMappingActive(false), m_showBboxes(false), m_scene(nullptr) {
 
 }
 
@@ -76,9 +76,25 @@ void Renderer::setViewport(const Viewport& viewport) {
 	m_viewport = viewport;
 }
 
+void Renderer::drawBoundingBox(const BoundingBox& bbox) {
+
+	auto shader = shaderManager()->getGlslProgram("simple");
+
+	shader->use();
+
+	auto geom = bbox.drawableGeometry();
+	geom->vao().bind();
+	glDrawElements(geom->drawMode(), geom->indexCount(), geom->elementsType(), nullptr);
+}
+
 void Renderer::drawSceneNodeBatches(SceneNode* node) {
+	if (m_showBboxes)
+		m_bboxDrawList.push_back(node->boundingBox());
+
 	if (node->isLeaf()) {
 		for (size_t i = 0; i < node->numObjects(); ++i) {
+			if (m_showBboxes)
+				m_bboxDrawList.push_back(node->object(i)->boundingBox());
 			drawBatch(m_batches.at(node->object(i)));
 		}
 	} else {
@@ -108,10 +124,18 @@ void Renderer::drawFrame() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//for (auto& batch : m_batches) {
-	//	drawBatch(batch);
-	//}
+	if (m_showBboxes)
+		m_bboxDrawList.clear();
+
 	drawSceneNodeBatches(m_scene->rootNode());
+
+	if (m_showBboxes) {
+		for (auto& bbox : m_bboxDrawList)
+			drawBoundingBox(bbox);
+
+		if (m_currentState.shader)
+			m_currentState.shader->use();
+	}
 
 	VertexArrayObject::unbind();
 }
@@ -172,7 +196,6 @@ void Renderer::registerRenderable(IRenderable* renderable) {
 	VertexArrayObject::unbind();
 	batch.geometry.reset(geom);
 
-	//m_batches.push_back(std::move(batch));
 	m_batches.insert(std::make_pair(renderable, std::move(batch)));
 
 	// group batches to minimize state changes
@@ -234,9 +257,6 @@ void Renderer::drawShadowMap() {
 	m_currentState.shader = m_shadowMap->shader();
 
 	// draw only geometry
-	/*for (auto& batch : m_batches) {
-		drawGeometry(*batch.geometry);
-	}*/
 	drawSceneNodeGeometry(m_scene->rootNode());
 	VertexArrayObject::unbind();
 
