@@ -57,14 +57,16 @@ ShadowMap::~ShadowMap() {
 }
 
 Renderer::Renderer() : m_shadowMappingActive(false), m_showBboxes(false), 
-	m_scene(nullptr) {
+	m_scene(nullptr), m_frameID(0) {
 
 }
 
 Renderer::~Renderer() { }
 
 void Renderer::initialize() {
-	m_bboxDrawer = std::unique_ptr<BoundingBoxDrawer>(new BoundingBoxDrawer(this));
+	m_bboxDrawer = std::unique_ptr<BoundingBoxDrawer>(
+		new BoundingBoxDrawer(shaderManager()->getGlslProgram("simple"), &m_currentState)
+	);
 
 	glEnable(GL_DEPTH_TEST);
 }
@@ -114,6 +116,8 @@ void Renderer::drawSceneNodeGeometry(SceneNode* node) {
 }
 
 void Renderer::drawFrame() {
+	m_frameID++;
+
 	// optional shadow map pass
 	if (m_shadowMappingActive) {
 		drawShadowMap();
@@ -123,15 +127,12 @@ void Renderer::drawFrame() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	drawSceneNodeBatches(m_scene->rootNode());
+	drawSceneWithOcclussionCulling(m_scene->rootNode());
+	//drawSceneNodeBatches(m_scene->rootNode());
 
 	if (m_showBboxes) {
 		m_bboxDrawer->draw();
-
 		m_bboxDrawer->clear();
-
-		if (m_currentState.shader)
-			m_currentState.shader->use();
 	}
 
 	VertexArrayObject::unbind();
@@ -262,6 +263,101 @@ void Renderer::drawShadowMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(static_cast<int>(m_viewport.x), static_cast<int>(m_viewport.y), 
 		static_cast<size_t>(m_viewport.width), static_cast<size_t>(m_viewport.height));
+}
+
+void Renderer::drawSceneWithOcclussionCulling(SceneNode* root) {
+	traversalStack.push_back(root);
+	while (!traversalStack.empty() || !queryQueue.empty()) {
+		// process finished queries
+		while (!queryQueue.empty() && (queryQueue.front().query.isResultAvailable() || traversalStack.empty())) {
+			// pop query from queue
+			QueryNode node = std::move(queryQueue.front());
+			queryQueue.pop();
+
+			// get query result (will wait to result if traversalStack is empty)
+			int visible = GL_FALSE;
+			node.query.getResult(&visible);
+			if (visible) {
+				pullUpVisibility(node.node);
+				traverseNode(node.node);
+			}
+		}
+
+		// hierarchical traversal
+		if (!traversalStack.empty()) {
+			// pop node from stack
+			auto node = traversalStack.back();
+			traversalStack.pop_back();
+			
+			// do frustum culling
+			if (m_camera->viewFrustum().boundingBoxIntersetion(node->boundingBox()) != Frustum::Intersection::None) {
+				// determine if node was previously visible
+				bool wasVisible = node->isVisible() && (node->lastVisited() == m_frameID - 1);
+
+				// update node visibility
+				node->setVisibility(false);
+				node->setLastVisited(m_frameID);
+
+				// issue query for leafs and previously invisible
+				if (node->isLeaf() || !wasVisible) {
+					issueQuery(node);
+				}
+
+				// always traverse a node when it was visible
+				if (wasVisible)
+					traverseNode(node);
+			}
+		}
+	}
+}
+
+void Renderer::pullUpVisibility(SceneNode* node) {
+	while (node && !node->isVisible()) {
+		node->setVisibility(true);
+		node = node->parent();
+	}
+}
+
+void Renderer::traverseNode(SceneNode* node) {
+	if (node->isLeaf()) {
+		for (size_t i = 0; i < node->numObjects(); ++i) {
+			drawBatch(m_batches.at(node->object(i)));
+		}
+	} else {
+		auto left = node->leftChild();
+		auto right = node->rightChild();
+
+		// compute distance from camera position to children bboxes
+		float distToLeft = left->boundingBox().distance(m_camera->position());
+		float distToRight = right->boundingBox().distance(m_camera->position());
+
+		// push children to stack ... farther child first
+		if (distToLeft > distToRight) {
+			traversalStack.push_back(left);
+			traversalStack.push_back(right);
+		} else {
+			traversalStack.push_back(right);
+			traversalStack.push_back(left);
+		}
+	}
+}
+
+void Renderer::issueQuery(SceneNode* node) {
+	// disable writing to depth buffer and color buffer
+	glDepthMask(GL_FALSE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	
+	Query query;
+	query.begin(GL_ANY_SAMPLES_PASSED);
+	m_bboxDrawer->drawSingle(node->boundingBox());
+	query.end(GL_ANY_SAMPLES_PASSED);
+
+	// re enable writing to depth buffer and color buffer
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDepthMask(GL_TRUE);
+
+	// push to queue
+	queryQueue.emplace(node, std::move(query));
 }
 
 }

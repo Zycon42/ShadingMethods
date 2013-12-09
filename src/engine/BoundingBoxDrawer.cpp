@@ -11,11 +11,27 @@
 
 namespace gl {
 
-BoundingBoxDrawer::BoundingBoxDrawer(gl::Renderer* renderer) : m_renderer(renderer) {
+BoundingBoxDrawer::BoundingBoxDrawer(std::shared_ptr<ShaderProgram> shader, Renderer::State* state) 
+	: m_shader(std::move(shader)), m_state(state) 
+{
+
+	uint16_t indices[BOX_INDICES] = {
+		3, 2, 6, 7, 4, 2, 0, 3, 1, 6, 5, 4, 1, 0
+	};
+
+	m_vao.bind();
+
+	m_ebo.loadData(indices, sizeof(indices));
+	m_ebo.bind(GL_ELEMENT_ARRAY_BUFFER);
+
+	m_vbo.loadData(nullptr, sizeof(glm::vec3) * BOX_VERTICES);
+	m_vbo.bind(GL_ARRAY_BUFFER);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, static_cast<const void*>(0));
 }
 
 void BoundingBoxDrawer::add(const BoundingBox& bbox) {
-	auto bmin = bbox.min();
+	/*auto bmin = bbox.min();
 	auto bmax = bbox.max();
 
 	glm::vec3 vertices[] = {
@@ -35,7 +51,7 @@ void BoundingBoxDrawer::add(const BoundingBox& bbox) {
 	m_indices.reserve(m_indices.size() + numIndices);
 	for (size_t i = 0; i < numIndices; ++i) {
 		m_indices.push_back(indices[i] + indicesBase);
-	}
+	}*/
 }
 
 void BoundingBoxDrawer::clear() {
@@ -44,8 +60,10 @@ void BoundingBoxDrawer::clear() {
 }
 
 void BoundingBoxDrawer::draw() {
-	auto shader = m_renderer->shaderManager()->getGlslProgram("simple");
-	shader->use();
+	/*if (m_state->shader != m_shader.get()) {
+		m_shader->use();
+		m_state->shader = m_shader.get();
+	}
 
 	m_vao.bind();
 
@@ -62,7 +80,29 @@ void BoundingBoxDrawer::draw() {
 
 	glDrawElements(GL_LINES, m_indices.size(), GL_UNSIGNED_INT, 0);
 
-	VertexArrayObject::unbind();
+	VertexArrayObject::unbind();*/
+}
+
+void BoundingBoxDrawer::drawSingle(const BoundingBox& bbox) {
+	// TODO: optimize!!!!
+
+	auto bmin = bbox.min();
+	auto bmax = bbox.max();
+
+	glm::vec3 vertices[BOX_VERTICES] = {
+		glm::vec3(bmax.x, bmax.y, bmin.z), glm::vec3(bmin.x, bmax.y, bmin.z), bmax,
+		glm::vec3(bmin.x, bmax.y, bmax.z), glm::vec3(bmax.x, bmin.y, bmin.z),
+		bmin, glm::vec3(bmin.x, bmin.y, bmax.z), glm::vec3(bmax.x, bmin.y, bmax.z) 
+	};
+
+	if (m_state->shader != m_shader.get()) {
+		m_shader->use();
+		m_state->shader = m_shader.get();
+	}
+
+	m_vao.bind();
+	m_vbo.updateData(0, sizeof(vertices), vertices);
+	glDrawElements(GL_TRIANGLE_STRIP, BOX_INDICES, GL_UNSIGNED_SHORT, 0);
 }
 
 }

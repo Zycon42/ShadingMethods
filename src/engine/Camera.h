@@ -36,6 +36,10 @@ public:
 		return m_buffer->data().view;
 	}
 
+	const glm::vec3& position() const {
+		return m_buffer->data().pos;
+	}
+
 	const Frustum& viewFrustum() const {
 		return m_viewFrustum;
 	}

@@ -13,10 +13,12 @@
 #include "RenderBatch.h"
 #include "ShaderManager.h"
 #include "Interfaces.h"
+#include "Query.h"
 
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <queue>
 
 class Camera;
 class IMaterial;
@@ -31,6 +33,15 @@ class ShadowMap;
 class Renderer
 {
 public:
+	struct State
+	{
+		State() : shader(nullptr), materialUbo(nullptr), nodeUbo(nullptr) { }
+
+		gl::ShaderProgram* shader;
+		gl::IndexedBuffer* materialUbo;
+		gl::IndexedBuffer* nodeUbo;
+	};
+
 	Renderer();
 	~Renderer();
 
@@ -79,15 +90,6 @@ private:
 	static const size_t SHADOW_MAP_SIZE = 1024;
 	static const int SHADOW_MAP_BINDING_POINT = 0;
 
-	struct State
-	{
-		State() : shader(nullptr), materialUbo(nullptr), nodeUbo(nullptr) { }
-
-		gl::ShaderProgram* shader;
-		gl::IndexedBuffer* materialUbo;
-		gl::IndexedBuffer* nodeUbo;
-	};
-
 	void drawBatch(RenderBatch& batch);
 	void drawGeometry(GeometryBatch& geom);
 
@@ -95,6 +97,11 @@ private:
 	void drawSceneNodeGeometry(SceneNode* node);
 
 	void drawShadowMap();
+
+	void drawSceneWithOcclussionCulling(SceneNode* root);
+	void pullUpVisibility(SceneNode* node);
+	void traverseNode(SceneNode* node);
+	void issueQuery(SceneNode* node);
 
 	Viewport m_viewport;
 
@@ -109,6 +116,23 @@ private:
 	Scene* m_scene;
 	bool m_showBboxes;
 	std::unique_ptr<BoundingBoxDrawer> m_bboxDrawer;
+
+	std::vector<SceneNode*> traversalStack;
+
+	struct QueryNode
+	{
+		QueryNode(SceneNode* node, Query&& query) : node(node), query(std::move(query)) { }
+		QueryNode(QueryNode&& other) : node(other.node), query(std::move(other.query)) { }
+
+		SceneNode* node;
+		Query query;
+	private:
+		QueryNode(const QueryNode&);
+		QueryNode& operator=(const QueryNode&);
+	};
+
+	std::queue<QueryNode> queryQueue;
+	uint32_t m_frameID;
 };
 
 class ShadowMap

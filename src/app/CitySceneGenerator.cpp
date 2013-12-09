@@ -82,7 +82,6 @@ public:
 		}
 
 		m_bbox = BoundingBox(min, max);
-		m_centroid = min + ((max - min) / 2.0f);
 	}
 
 	virtual BoundingBox boundingBox() const {
@@ -90,11 +89,10 @@ public:
 	}
 
 	virtual glm::vec3 centroid() const {
-		return m_centroid;
+		return m_bbox.center();
 	}
 private:
 	BoundingBox m_bbox;
-	glm::vec3 m_centroid;
 };
 
 CitySceneGenerator::CitySceneGenerator() {

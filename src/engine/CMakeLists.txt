@@ -32,6 +32,7 @@ set(SM_ENGINE_HEADERS
 	BVH.h
 	VertexArrayObject.h
 	BoundingBoxDrawer.h
+	Query.h
 )
 
 set(SM_ENGINE_SOURCES

@@ -1,5 +1,5 @@
 /**
- * @file Node.h
+ * @file BaseSceneObject.h
  *
  * @author Jan Dušek <xdusek17@stud.fit.vutbr.cz>
  * @date 2013

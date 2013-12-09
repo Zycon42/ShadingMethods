@@ -82,9 +82,25 @@ public:
 	SceneNode* parent() const {
 		return m_parent;
 	}
+
+	bool isVisible() const {
+		return m_visible;
+	}
+
+	void setVisibility(bool visible) {
+		m_visible = visible;
+	}
+
+	uint32_t lastVisited() const {
+		return m_lastVisited;
+	}
+
+	void setLastVisited(uint32_t val) {
+		m_lastVisited = val;
+	}
 private:
 	SceneNode(Scene* scene, BVH::Node* node, SceneNode* parent)
-		: m_scene(scene), m_bvhNode(node), m_parent(parent) { }
+		: m_scene(scene), m_bvhNode(node), m_parent(parent), m_visible(true), m_lastVisited(0) { }
 
 	friend class Scene;
 
@@ -92,6 +108,9 @@ private:
 	BVH::Node* m_bvhNode;
 	SceneNode* m_parent;
 	std::unique_ptr<SceneNode> m_left, m_right;
+
+	bool m_visible;
+	uint32_t m_lastVisited;
 };
 
 #endif // !SCENE_H

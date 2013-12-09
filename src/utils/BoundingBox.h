@@ -34,6 +34,22 @@ public:
 		return m_max;
 	}
 
+	glm::vec3 center() const {
+		return (m_max + m_min) * 0.5f;
+	}
+
+	bool contains(const glm::vec3& p) const {
+		return m_min.x <= p.x && p.x <= m_max.x &&
+			m_min.y <= p.y && p.y <= m_max.y &&
+			m_min.z <= p.z && p.z <= m_max.z;
+	}
+
+	float distance(const glm::vec3& p) const {
+		return glm::sqrt(sqrDistance(p));
+	}
+
+	float sqrDistance(const glm::vec3& p) const;
+
 	/// Enlarges bounding box to include given point
 	void expandToInclude(const glm::vec3& point);
 	/// Enlarges bounding box to include another bounding box

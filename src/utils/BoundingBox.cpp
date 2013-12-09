@@ -36,3 +36,19 @@ int BoundingBox::maxDimension() const {
 		result = 2;
 	return result;
 }
+
+float BoundingBox::sqrDistance(const glm::vec3& p) const {
+	if (this->contains(p))
+		return 0.0f;
+
+	// Ericson: Real-Time Collision Detection p. 131
+	float dist = 0.0f;
+	for (int i = 0; i < 3; ++i) {
+		float v = p[i];
+		if (v < m_min[i])
+			dist += (m_min[i] - v) * (m_min[i] - v);
+		if (v > m_max[i])
+			dist += (v - m_max[i]) * (v - m_max[i]);
+	}
+	return dist;
+}

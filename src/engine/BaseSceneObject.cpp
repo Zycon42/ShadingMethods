@@ -1,5 +1,5 @@
 /**
- * @file Node.cpp
+ * @file BaseSceneObject.cpp
  *
  * @author Jan Dušek <xdusek17@stud.fit.vutbr.cz>
  * @date 2013
