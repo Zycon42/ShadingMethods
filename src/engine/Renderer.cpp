@@ -264,17 +264,17 @@ void Renderer::drawSceneWithOcclussionCulling(SceneNode* root) {
 	traversalStack.push_back(root);
 	while (!traversalStack.empty() || !queryQueue.empty()) {
 		// process finished queries
-		while (!queryQueue.empty() && (queryQueue.front().query.isResultAvailable() || traversalStack.empty())) {
-			// pop query from queue
-			QueryNode node = std::move(queryQueue.front());
+		while (!queryQueue.empty() && (queryQueue.front()->query().isResultAvailable() || traversalStack.empty())) {
+			// pop node from queue
+			auto node = queryQueue.front();
 			queryQueue.pop();
 
 			// get query result (will wait to result if traversalStack is empty)
 			int visible = GL_FALSE;
-			node.query.getResult(&visible);
+			node->query().getResult(&visible);
 			if (visible) {
-				pullUpVisibility(node.node);
-				traverseNode(node.node);
+				pullUpVisibility(node);
+				traverseNode(node);
 			}
 		}
 
@@ -345,17 +345,16 @@ void Renderer::issueQuery(SceneNode* node) {
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	
-	Query query;
-	query.begin(GL_ANY_SAMPLES_PASSED);
+	node->query().begin(GL_ANY_SAMPLES_PASSED);
 	m_bboxDrawer->drawSingle(node->boundingBox());
-	query.end(GL_ANY_SAMPLES_PASSED);
+	node->query().end(GL_ANY_SAMPLES_PASSED);
 
 	// re enable writing to depth buffer and color buffer
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_TRUE);
 
 	// push to queue
-	queryQueue.emplace(node, std::move(query));
+	queryQueue.push(node);
 }
 
 }

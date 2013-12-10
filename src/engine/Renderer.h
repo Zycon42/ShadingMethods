@@ -119,7 +119,7 @@ private:
 
 	std::vector<SceneNode*> traversalStack;
 
-	struct QueryNode
+	/*struct QueryNode
 	{
 		QueryNode(SceneNode* node, Query&& query) : node(node), query(std::move(query)) { }
 		QueryNode(QueryNode&& other) : node(other.node), query(std::move(other.query)) { }
@@ -129,9 +129,9 @@ private:
 	private:
 		QueryNode(const QueryNode&);
 		QueryNode& operator=(const QueryNode&);
-	};
+	};*/
 
-	std::queue<QueryNode> queryQueue;
+	std::queue<SceneNode*> queryQueue;
 	uint32_t m_frameID;
 };
 

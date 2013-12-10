@@ -9,6 +9,7 @@
 #define SCENE_H
 
 #include "Renderer.h"
+#include "Query.h"
 #include "BVH.h"
 
 #include <memory>
@@ -98,6 +99,10 @@ public:
 	void setLastVisited(uint32_t val) {
 		m_lastVisited = val;
 	}
+
+	gl::Query& query() {
+		return m_query;
+	}
 private:
 	SceneNode(Scene* scene, BVH::Node* node, SceneNode* parent)
 		: m_scene(scene), m_bvhNode(node), m_parent(parent), m_visible(true), m_lastVisited(0) { }
@@ -111,6 +116,7 @@ private:
 
 	bool m_visible;
 	uint32_t m_lastVisited;
+	gl::Query m_query;
 };
 
 #endif // !SCENE_H
