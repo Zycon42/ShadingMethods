@@ -90,12 +90,12 @@ void Renderer::drawSceneNodeBatches(SceneNode* node) {
 		return;
 
 	if (m_showBboxes)
-		m_bboxDrawer->add(node->boundingBox());
+		m_bboxDrawer->drawLinedSingle(node->boundingBox());
 
 	if (node->isLeaf()) {
 		for (size_t i = 0; i < node->numObjects(); ++i) {
 			if (m_showBboxes)
-				m_bboxDrawer->add(node->object(i)->boundingBox());
+				m_bboxDrawer->drawLinedSingle(node->object(i)->boundingBox());
 			drawBatch(m_batches.at(node->object(i)));
 		}
 	} else {
@@ -129,11 +129,6 @@ void Renderer::drawFrame() {
 
 	drawSceneWithOcclussionCulling(m_scene->rootNode());
 	//drawSceneNodeBatches(m_scene->rootNode());
-
-	if (m_showBboxes) {
-		m_bboxDrawer->draw();
-		m_bboxDrawer->clear();
-	}
 
 	VertexArrayObject::unbind();
 }
@@ -319,6 +314,9 @@ void Renderer::pullUpVisibility(SceneNode* node) {
 }
 
 void Renderer::traverseNode(SceneNode* node) {
+	if (m_showBboxes)
+		m_bboxDrawer->drawLinedSingle(node->boundingBox());
+
 	if (node->isLeaf()) {
 		for (size_t i = 0; i < node->numObjects(); ++i) {
 			drawBatch(m_batches.at(node->object(i)));

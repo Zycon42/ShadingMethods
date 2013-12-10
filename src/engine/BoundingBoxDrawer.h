@@ -21,24 +21,22 @@ class BoundingBoxDrawer
 public:
 	BoundingBoxDrawer(std::shared_ptr<ShaderProgram> shader, Renderer::State* state);
 
-	void add(const BoundingBox& bbox);
-	void clear();
-	void draw();
-
 	void drawSingle(const BoundingBox& bbox);
+
+	void drawLinedSingle(const BoundingBox& bbox);
 private:
 	std::shared_ptr<ShaderProgram> m_shader;
 	Renderer::State* m_state;
 
-	std::vector<glm::vec3> m_vertices;
-	std::vector<uint32_t> m_indices;
-
 	VertexArrayObject m_vao;
+	VertexArrayObject m_linesVao;
 
 	static const int BOX_VERTICES = 8;
 	static const int BOX_INDICES = 14;
+	static const int LINES_INDICES = 24;
 
 	Buffer m_ebo;
+	Buffer m_linesEbo;
 	Buffer m_vbo;
 };
 
