@@ -36,7 +36,7 @@ public:
 	}
 
 	bool hasElements() {
-		return m_ebo;
+		return static_cast<bool>(m_ebo);
 	}
 
 	void setPrimitiveType(PrimitiveType type);

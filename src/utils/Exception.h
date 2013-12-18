@@ -44,6 +44,7 @@ public:
 
 #ifdef _WIN32
 
+#define NOGDI
 #include <Windows.h>
 
 /**
