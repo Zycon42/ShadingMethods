@@ -8,7 +8,6 @@
 #include "Application.h"
 
 #include "Logging.h"
-#include "Helpers.h"
 #include "Common.h"
 #include "Renderer.h"
 #include "Scene.h"

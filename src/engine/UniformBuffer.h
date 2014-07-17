@@ -10,6 +10,8 @@
 
 #include "Buffer.h"
 
+#include <utility>
+#include <cstring>
 #include <cassert>
 
 /**

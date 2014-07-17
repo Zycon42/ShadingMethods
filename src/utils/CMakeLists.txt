@@ -10,7 +10,6 @@ set(SM_UTILS_HEADERS
 	Exception.h
 	Logging.h
 	ArrayRef.h
-	Helpers.h
 	Plane.h
 	Frustum.h
 	BoundingBox.h

@@ -5,7 +5,6 @@
  * @date 2013
  */
 
-#include "Helpers.h"
 #include "BoundingBox.h"
 
 #include <algorithm>

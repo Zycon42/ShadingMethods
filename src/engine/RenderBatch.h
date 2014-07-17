@@ -69,7 +69,7 @@ public:
 		return m_vertexCount;
 	}
 private:
-	GeometryBatch(GeometryBatch&);
+	GeometryBatch(const GeometryBatch&);
 	GeometryBatch& operator=(const GeometryBatch&);
 
 	VertexArrayObject m_vao;
@@ -88,7 +88,6 @@ private:
 class RenderBatch
 {
 public:
-	// movable p.s. in msvc11 there's no (= default/delete) so we have to use this stupid way
 	RenderBatch() : shader(nullptr), materialUbo(nullptr), nodeUbo(nullptr), geometry(nullptr) { }
 	RenderBatch(RenderBatch&& other) 
 		: shader(other.shader), materialUbo(other.materialUbo), nodeUbo(other.nodeUbo), geometry(std::move(other.geometry))
@@ -101,6 +100,9 @@ public:
 		this->geometry = std::move(other.geometry);
 		return *this;
 	}
+	
+	RenderBatch(const RenderBatch&) = delete;
+	RenderBatch& operator=(const RenderBatch&) = delete;
 
 	/// Shader we will use
 	gl::ShaderProgram* shader;
@@ -110,10 +112,6 @@ public:
 	gl::IndexedBuffer* nodeUbo;
 	/// Geometry stuff
 	std::unique_ptr<GeometryBatch> geometry;
-private:
-	// noncopyable
-	RenderBatch(RenderBatch&);
-	RenderBatch& operator=(const RenderBatch&);
 };
 
 }

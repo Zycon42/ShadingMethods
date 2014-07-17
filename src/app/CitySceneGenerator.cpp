@@ -10,7 +10,6 @@
 #include "Scene.h"
 #include "Material.h"
 #include "Common.h"
-#include "Helpers.h"
 #include "Mesh.h"
 #include "BaseSceneObject.h"
 
@@ -117,8 +116,10 @@ void CitySceneGenerator::generate(Scene* scene) {
 	size_t buildingVerticesCount = sizeof(buildingVertices) / sizeof(*buildingVertices);
 	std::vector<char> vertices(reinterpret_cast<const char*>(buildingVertices), 
 		reinterpret_cast<const char*>(buildingVertices) + sizeof(buildingVertices));
-	std::vector<VertexElement> layout = create_vector<VertexElement>
-		(VertexElement(3, VertexElementType::Float))(VertexElement(3, VertexElementType::Float));
+	std::vector<VertexElement> layout = {
+		VertexElement(3, VertexElementType::Float),
+		VertexElement(3, VertexElementType::Float)
+	};
 	mesh->loadVertices(vertices, buildingVerticesCount, layout);
 
 	size_t buildingIndicesCount = sizeof(buildingIndices) / sizeof(*buildingIndices);

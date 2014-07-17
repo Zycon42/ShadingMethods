@@ -8,7 +8,7 @@
 #ifndef SHADER_PROGRAM_H
 #define SHADER_PROGRAM_H
 
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <boost/variant/variant.hpp>

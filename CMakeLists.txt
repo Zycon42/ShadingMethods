@@ -10,13 +10,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules ${CMAKE_MODULE_PATH})
 
 # add C++11 support for gcc
 if(CMAKE_COMPILER_IS_GNUCXX)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++0x")
 endif()
 
 if(MSVC OR MSVC_IDE) 
-	if( MSVC_VERSION LESS 1700 )       # VC10-/VS2010- 
+	if( MSVC_VERSION LESS 1800 )       # VC11-/VS2012- 
 		message(FATAL_ERROR "The project requires C++11 features. " 
-			"You need at least Visual Studio 11 (Microsoft Visual Studio 2012)") 
+			"You need at least Visual Studio 12 (Microsoft Visual Studio 2013)") 
 	endif() 
 endif()
 

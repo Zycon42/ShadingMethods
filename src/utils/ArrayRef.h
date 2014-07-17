@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cstddef>
+#include <cassert>
 
 /**
  * Convenient class for passing non-const references to arrays.

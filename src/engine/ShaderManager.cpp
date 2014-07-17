@@ -8,7 +8,6 @@
 #include "ShaderManager.h"
 
 #include "ShaderProgram.h"
-#include "Helpers.h"
 #include "Common.h"
 #include "Logging.h"
 
@@ -51,10 +50,11 @@ std::shared_ptr<gl::ShaderProgram> ShaderManager::loadProgram(const std::string&
 }
 
 std::string ShaderManager::shaderTypeFileSuffix(gl::Shader::Type type) {
-	static std::map<gl::Shader::Type, std::string> typeSuffixes = create_map<gl::Shader::Type, std::string>
-		(gl::Shader::Type::Vertex, "vert")(gl::Shader::Type::Fragment, "frag")
-		(gl::Shader::Type::Geometry, "geom")(gl::Shader::Type::TessControl, "tesc")
-		(gl::Shader::Type::TessEvaluation, "tese");
+	static std::map<gl::Shader::Type, const char*> typeSuffixes = {
+			{ gl::Shader::Type::Vertex, "vert" }, { gl::Shader::Type::Fragment, "frag" },
+			{ gl::Shader::Type::Geometry, "geom" }, { gl::Shader::Type::TessControl, "tesc" },
+			{ gl::Shader::Type::TessEvaluation, "tese" }
+	};
 
 	return typeSuffixes[type];
 }
